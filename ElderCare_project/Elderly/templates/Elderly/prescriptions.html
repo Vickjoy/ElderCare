@@ -1,0 +1,15 @@
+{% extends 'elderly/base.html' %}
+
+{% block content %}
+<h2>Prescriptions</h2>
+<ul>
+    {% for prescription in prescriptions %}
+    <li>
+        <strong>Medication Name:</strong> {{ prescription.medication_name }}<br>
+        <strong>Dosage:</strong> {{ prescription.dosage }}<br>
+        <strong>Duration:</strong> {{ prescription.duration }}<br>
+        <strong>Additional Notes:</strong> {{ prescription.additional_notes }}
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

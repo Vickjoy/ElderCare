@@ -1,0 +1,6 @@
+{% extends 'elderly/base.html' %}
+
+{% block content %}
+<h2>Emergency Power Button</h2>
+<button id="emergency-button" onclick="location.href='{% url 'emergency_button' %}'">Emergency Help</button>
+{% endblock %}

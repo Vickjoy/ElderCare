@@ -1,0 +1,220 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+venv_old/
+env_old/
+
+# Dependency files
+requirements.txt.lock
+Pipfile.lock
+poetry.lock
+
+# Logs
+*.log
+logs/
+log/
+
+# Database files
+db.sqlite3
+db.sqlite3-journal
+db.sqlite3-wal
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+
+# Media files (if not tracked)
+media/
+staticfiles/
+
+# IDE-specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+*.suo
+*.sln.docstates
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.backup
+*.lock
+
+# Build directories
+/build/
+/dist/
+/target/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+*.dockerfile
+*.dockerignore
+
+# Vagrant
+Vagrantfile
+.vagrant/
+
+# Environment variables
+.env
+.env.local
+.env.test
+.env.development
+.env.production
+
+# Compiled Python files
+*.pyc
+*.pyo
+*.pyd
+
+# Local configuration files
+local_settings.py
+local_settings.pyc
+
+# IDE-specific files
+# PyCharm
+.idea/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries/
+.idea/scopes/
+.idea/markers.xml
+.idea/inspectionProfiles/
+.idea/encodings.xml
+.idea/modules.xml
+.idea/modules/
+.idea/artifacts/
+.idea/dataSources/
+.idea/dataSources.ids
+.idea/sqlDataSources/
+.idea/databases/
+.idea/sqldatasources.xml
+.idea/libraries/
+.idea/pythonPackages/
+.idea/gradle.xml
+.idea/gradle/
+.idea/out/
+.idea/resolvers/
+.idea/caches/
+.idea/watcherTasks.xml
+.idea/log/
+.idea/externalDependencies/
+
+# VSCode
+.vscode/
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
+.vscode/keybindings.json
+.vscode/snippets/
+.vscode/syncLocalSettings/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+*.sublime-settings
+*.sublime-session
+
+# Atom
+.atom/
+*.atom/
+
+# Eclipse
+.classpath
+.project
+.settings/
+.metadata/
+bin/
+tmp/
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+*.ipr
+*.iws
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+gen/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+.nb-private/
+
+# Xcode
+xcuserdata/
+DerivedData/
+*.mode1v3
+*.mode2v3
+*.pbxuser
+*.perspectivev3
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+*.xcuserdatad*
+*.xcscmblueprint
+*.xcshareddata/
+*.xcschemes/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# Android Studio
+.idea/
+.gradle/
+local.properties
+*.iml
+*.ipr
+*.iws
+build/
+captures/

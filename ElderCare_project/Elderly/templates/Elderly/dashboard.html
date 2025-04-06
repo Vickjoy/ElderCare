@@ -1,0 +1,43 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<h2>Welcome to Your Dashboard</h2>
+<div>
+    <h3>Service Booking</h3>
+    <form action="{% url 'service_booking' %}" method="post">
+        {% csrf_token %}
+        <label for="specialization">Specialization:</label>
+        <select name="specialization" id="specialization">
+            <option value="cardiologist">Cardiologist</option>
+            <option value="neurologist">Neurologist</option>
+            <option value="geriatrician">Geriatrician</option>
+        </select>
+        <button type="submit">Request Assistance</button>
+    </form>
+</div>
+<div>
+    <h3>Emergency Power Button</h3>
+    <button id="emergency-button" onclick="location.href='{% url 'emergency_button' %}'">Emergency Help</button>
+</div>
+<div>
+    <h3>Health Records</h3>
+    <a href="{% url 'health_records' %}">View Health Records</a>
+</div>
+<div>
+    <h3>Prescriptions</h3>
+    <a href="{% url 'prescriptions' %}">View Prescriptions</a>
+</div>
+<div>
+    <h3>Billing Section</h3>
+    <a href="{% url 'billing_section' %}">View Billing Information</a>
+</div>
+<div>
+    <h3>Medication Reminders</h3>
+    <a href="{% url 'medication_reminders' %}">View Medication Reminders</a>
+</div>
+<div>
+    <h3>Notifications</h3>
+    <a href="{% url 'notifications' %}">View Notifications</a>
+</div>
+{% endblock %}
