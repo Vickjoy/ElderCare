@@ -1,0 +1,17 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-form">
+        <h2>Elderly User Profile</h2>
+        <p><strong>First Name:</strong> {{ elderly_user.first_name }}</p>
+        <p><strong>Last Name:</strong> {{ elderly_user.last_name }}</p>
+        <p><strong>Date of Birth:</strong> {{ elderly_user.date_of_birth }}</p>
+        <p><strong>Gender:</strong> {{ elderly_user.gender }}</p>
+        <p><strong>Address:</strong> {{ elderly_user.address }}</p>
+        <p><strong>Emergency Contact:</strong> {{ elderly_user.emergency_contact }}</p>
+        <a href="{% url 'dashboard' %}">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

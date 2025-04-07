@@ -42,7 +42,7 @@ class Caregiver(models.Model):
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     relationship = models.CharField(max_length=50, blank=True, null=True)
-    assigned_users = models.JSONField(blank=True, null=True)
+    assigned_users = models.JSONField(default=list, blank=True, null=True)  # Initialize to an empty list
 
 class Doctor(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
@@ -54,7 +54,7 @@ class Doctor(models.Model):
 
 class Admin(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    permissions = models.JSONField(blank=True, null=True)
+    permissions = models.JSONField(default=dict, blank=True, null=True)  # Initialize to an empty dictionary
 
 class HealthRecord(models.Model):
     elderly_user = models.ForeignKey(ElderlyUser, on_delete=models.CASCADE)

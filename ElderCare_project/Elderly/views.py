@@ -1,8 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Billing, CustomUser, ElderlyUser, Caregiver, Doctor, Admin, EmergencyNotification, FeedbackNotification, HealthRecord, Prescription, ServiceRequest
-from .forms import UserRegistrationForm, UserProfileForm, CaregiverProfileForm, DoctorProfileForm, AdminProfileForm
+from .models import (
+    CustomUser, ElderlyUser, Caregiver, Doctor, Admin, EmergencyNotification, FeedbackNotification,
+    HealthRecord, ServiceRequest, Prescription, Billing
+)
+from .forms import (
+    UserRegistrationForm, UserProfileForm, CaregiverProfileForm, DoctorProfileForm, AdminProfileForm
+)
 
 def home(request):
     if request.user.is_authenticated:
@@ -64,8 +69,24 @@ def dashboard(request):
     elif user.role == 'caregiver':
         if not hasattr(user, 'caregiver') or not user.caregiver.first_name:
             return redirect('profile')
-        assigned_users = ElderlyUser.objects.filter(id__in=user.caregiver.assigned_users)
-        return render(request, 'elderly/caregiver_dashboard.html', {'assigned_users': assigned_users})
+        
+        # Ensure assigned_users is not None
+        assigned_users = user.caregiver.assigned_users if user.caregiver.assigned_users else []
+        
+        emergency_notifications = EmergencyNotification.objects.filter(
+            elderly_user__id__in=assigned_users,
+            status='sent'
+        ).order_by('-timestamp')
+        
+        feedback_notifications = FeedbackNotification.objects.filter(
+            notification__elderly_user__id__in=assigned_users
+        ).order_by('-timestamp')
+        
+        return render(request, 'elderly/caregiver_dashboard.html', {
+            'assigned_users': assigned_users,
+            'emergency_notifications': emergency_notifications,
+            'feedback_notifications': feedback_notifications
+        })
     elif user.role == 'doctor':
         if not hasattr(user, 'doctor') or not user.doctor.first_name:
             return redirect('profile')
@@ -103,7 +124,7 @@ def profile(request):
             if hasattr(user, 'caregiver'):
                 form = CaregiverProfileForm(instance=user.caregiver)
             else:
-                Caregiver.objects.create(user=user)
+                Caregiver.objects.create(user=user, assigned_users=[])
                 form = CaregiverProfileForm()
     elif user.role == 'doctor':
         if request.method == 'POST':
@@ -143,34 +164,60 @@ def service_booking(request):
 def emergency_button(request):
     if request.user.role == 'elderly':
         caregiver = Caregiver.objects.first()  # Simplified for demonstration
-        EmergencyNotification.objects.create(elderly_user=request.user.elderlyuser, caregiver=caregiver, status='sent')
+        if caregiver:
+            EmergencyNotification.objects.create(
+                elderly_user=request.user.elderlyuser,
+                caregiver=caregiver,
+                status='sent'
+            )
         return redirect('dashboard')
     return redirect('dashboard')
 
 @login_required
 def health_records(request):
-    records = HealthRecord.objects.filter(elderly_user=request.user.elderlyuser)
-    return render(request, 'elderly/health_records.html', {'records': records})
+    if request.user.role == 'elderly':
+        records = HealthRecord.objects.filter(elderly_user=request.user.elderlyuser)
+        return render(request, 'elderly/health_records.html', {'records': records})
+    elif request.user.role == 'doctor':
+        elderly_user_id = request.GET.get('elderly_user_id')
+        if elderly_user_id:
+            elderly_user = get_object_or_404(ElderlyUser, id=elderly_user_id)
+            records = HealthRecord.objects.filter(elderly_user=elderly_user)
+            return render(request, 'elderly/health_records.html', {'records': records, 'elderly_user': elderly_user})
+    return redirect('dashboard')
 
 @login_required
 def prescriptions(request):
-    prescriptions = Prescription.objects.filter(request__elderly_user=request.user.elderlyuser)
-    return render(request, 'elderly/prescriptions.html', {'prescriptions': prescriptions})
+    if request.user.role == 'elderly':
+        prescriptions = Prescription.objects.filter(request__elderly_user=request.user.elderlyuser)
+        return render(request, 'elderly/prescriptions.html', {'prescriptions': prescriptions})
+    elif request.user.role == 'caregiver':
+        return redirect('medication_management')
+    return redirect('dashboard')
 
 @login_required
 def billing_section(request):
-    bills = Billing.objects.filter(request__elderly_user=request.user.elderlyuser)
-    return render(request, 'elderly/billing_section.html', {'bills': bills})
+    if request.user.role == 'elderly':
+        bills = Billing.objects.filter(request__elderly_user=request.user.elderlyuser)
+        return render(request, 'elderly/billing_section.html', {'bills': bills})
+    return redirect('dashboard')
 
 @login_required
 def medication_reminders(request):
-    # Placeholder for medication reminders
-    return render(request, 'elderly/medication_reminders.html')
+    if request.user.role == 'elderly':
+        return render(request, 'elderly/medication_reminders.html')
+    elif request.user.role == 'caregiver':
+        return redirect('medication_management')
+    return redirect('dashboard')
 
 @login_required
 def notifications(request):
-    notifications = FeedbackNotification.objects.filter(notification__elderly_user=request.user.elderlyuser)
-    return render(request, 'elderly/notifications.html', {'notifications': notifications})
+    if request.user.role == 'elderly':
+        notifications = FeedbackNotification.objects.filter(notification__elderly_user=request.user.elderlyuser)
+        return render(request, 'elderly/notifications.html', {'notifications': notifications})
+    elif request.user.role == 'caregiver':
+        return redirect('notifications')
+    return redirect('dashboard')
 
 @login_required
 def logout_confirm(request):
@@ -181,3 +228,145 @@ def logout_confirm_action(request):
         logout(request)
         return redirect('home')
     return redirect('logout_confirm')
+
+@login_required
+def unverified_doctor(request):
+    return render(request, 'elderly/unverified_doctor.html')
+
+@login_required
+def admin_dashboard(request):
+    if request.user.role == 'admin':
+        if not hasattr(user, 'admin') or not user.admin.permissions:
+            return redirect('profile')
+        doctors = Doctor.objects.filter(verified_status=False)
+        return render(request, 'elderly/admin_dashboard.html', {'doctors': doctors})
+    return redirect('dashboard')
+
+@login_required
+def elderly_profile(request, elderly_user_id):
+    try:
+        elderly_user = ElderlyUser.objects.get(id=elderly_user_id)
+        return render(request, 'elderly/elderly_profile.html', {'elderly_user': elderly_user})
+    except ElderlyUser.DoesNotExist:
+        return redirect('dashboard')
+
+@login_required
+def acknowledge_emergency(request, notification_id):
+    try:
+        notification = EmergencyNotification.objects.get(id=notification_id)
+        if notification.caregiver == request.user.caregiver:
+            notification.status = 'acknowledged'
+            notification.save()
+            FeedbackNotification.objects.create(
+                notification=notification,
+                message="Help is on the way!",
+                status='sent'
+            )
+            return redirect('dashboard')
+    except EmergencyNotification.DoesNotExist:
+        pass
+    return redirect('dashboard')
+
+@login_required
+def resolve_emergency(request, notification_id):
+    try:
+        notification = EmergencyNotification.objects.get(id=notification_id)
+        if notification.caregiver == request.user.caregiver:
+            notification.status = 'resolved'
+            notification.save()
+            return redirect('dashboard')
+    except EmergencyNotification.DoesNotExist:
+        pass
+    return redirect('dashboard')
+
+@login_required
+def monitoring_tools(request):
+    if request.user.role == 'caregiver':
+        # Ensure assigned_users is not None
+        assigned_users = request.user.caregiver.assigned_users if request.user.caregiver.assigned_users else []
+        
+        # Fetch health records for assigned elderly users
+        health_records = {}
+        for user_id in assigned_users:
+            elderly_user = get_object_or_404(ElderlyUser, id=user_id)
+            records = HealthRecord.objects.filter(elderly_user=elderly_user).order_by('-last_updated')
+            health_records[elderly_user] = records
+        
+        # Estimated ranges for health metrics
+        health_metrics_ranges = {
+            'blood_pressure': {'low': (90, 120), 'high': (140, 180)},
+            'heart_rate': {'low': 60, 'high': 100},
+            'sugar_levels': {'low': 70, 'high': 110},  # Fasting glucose levels
+        }
+        
+        return render(request, 'elderly/monitoring_tools.html', {
+            'health_records': health_records,
+            'health_metrics_ranges': health_metrics_ranges
+        })
+    return redirect('dashboard')
+
+@login_required
+def medication_management(request):
+    if request.user.role == 'caregiver':
+        # Ensure assigned_users is not None
+        assigned_users = request.user.caregiver.assigned_users if request.user.caregiver.assigned_users else []
+        
+        # Fetch prescriptions for assigned elderly users
+        prescriptions = {}
+        for user_id in assigned_users:
+            elderly_user = get_object_or_404(ElderlyUser, id=user_id)
+            user_prescriptions = Prescription.objects.filter(request__elderly_user=elderly_user)
+            prescriptions[elderly_user] = user_prescriptions
+        
+        return render(request, 'elderly/medication_management.html', {
+            'prescriptions': prescriptions
+        })
+    return redirect('dashboard')
+
+@login_required
+def appointment_scheduling(request):
+    if request.user.role == 'caregiver':
+        # Ensure assigned_users is not None
+        assigned_users = request.user.caregiver.assigned_users if request.user.caregiver.assigned_users else []
+        
+        # Fetch service requests for assigned elderly users
+        service_requests = {}
+        for user_id in assigned_users:
+            elderly_user = get_object_or_404(ElderlyUser, id=user_id)
+            user_requests = ServiceRequest.objects.filter(elderly_user=elderly_user, status='pending')
+            service_requests[elderly_user] = user_requests
+        
+        return render(request, 'elderly/appointment_scheduling.html', {
+            'service_requests': service_requests
+        })
+    return redirect('dashboard')
+
+@login_required
+def assigned_elderly_users(request):
+    if request.user.role == 'caregiver':
+        # Ensure assigned_users is not None
+        assigned_users = request.user.caregiver.assigned_users if request.user.caregiver.assigned_users else []
+        
+        # Fetch detailed profiles for assigned elderly users
+        elderly_users = ElderlyUser.objects.filter(id__in=assigned_users)
+        
+        return render(request, 'elderly/assigned_elderly_users.html', {
+            'elderly_users': elderly_users
+        })
+    return redirect('dashboard')
+
+@login_required
+def emergency_alerts(request):
+    if request.user.role == 'caregiver':
+        # Ensure assigned_users is not None
+        assigned_users = request.user.caregiver.assigned_users if request.user.caregiver.assigned_users else []
+        
+        emergency_notifications = EmergencyNotification.objects.filter(
+            elderly_user__id__in=assigned_users,
+            status='sent'
+        ).order_by('-timestamp')
+        
+        return render(request, 'elderly/emergency_alerts.html', {
+            'emergency_notifications': emergency_notifications
+        })
+    return redirect('dashboard')

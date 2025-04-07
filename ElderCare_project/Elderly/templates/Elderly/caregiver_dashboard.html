@@ -9,43 +9,22 @@
     <div class="dashboard-content">
         <h2>Welcome to Your Caregiver Dashboard</h2>
         <div class="dashboard-section">
-            <h3>Assigned Elderly Users</h3>
-            <ul>
-                {% for elderly_user in assigned_users %}
-                <li>
-                    <strong>{{ elderly_user.first_name }} {{ elderly_user.last_name }}</strong><br>
-                    <span>Date of Birth: {{ elderly_user.date_of_birth }}</span><br>
-                    <span>Gender: {{ elderly_user.gender }}</span><br>
-                    <span>Address: {{ elderly_user.address }}</span><br>
-                    <span>Emergency Contact: {{ elderly_user.emergency_contact }}</span>
-                </li>
-                {% endfor %}
-            </ul>
+            <h3><a href="{% url 'assigned_elderly_users' %}">Assigned Elderly Users</a></h3>
         </div>
         <div class="dashboard-section">
-            <h3>Monitoring Tools</h3>
-            <!-- Placeholder for monitoring tools -->
-            <p>Real-time health metrics, alerts, etc.</p>
+            <h3><a href="{% url 'monitoring_tools' %}">Monitoring Tools</a></h3>
         </div>
         <div class="dashboard-section">
-            <h3>Medication Management</h3>
-            <!-- Placeholder for medication management -->
-            <p>Track adherence, send reminders, etc.</p>
+            <h3><a href="{% url 'medication_management' %}">Medication Management</a></h3>
         </div>
         <div class="dashboard-section">
-            <h3>Appointment Scheduling</h3>
-            <!-- Placeholder for appointment scheduling -->
-            <p>Schedule and track medical appointments.</p>
+            <h3><a href="{% url 'appointment_scheduling' %}">Appointment Scheduling</a></h3>
         </div>
         <div class="dashboard-section">
-            <h3>Emergency Alerts</h3>
-            <!-- Placeholder for emergency alerts -->
-            <p>Receive pop-up alerts for emergencies.</p>
+            <h3><a href="{% url 'emergency_alerts' %}">Emergency Alerts</a></h3>
         </div>
         <div class="dashboard-section">
-            <h3>Notifications</h3>
-            <!-- Placeholder for notifications -->
-            <p>Receive alerts for emergencies, health metrics, medication adherence.</p>
+            <h3><a href="{% url 'notifications' %}">Notifications</a></h3>
         </div>
     </div>
 </div>
