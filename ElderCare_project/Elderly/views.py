@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import *
-from .forms import *
+from .models import Billing, CustomUser, ElderlyUser, Caregiver, Doctor, Admin, EmergencyNotification, FeedbackNotification, HealthRecord, Prescription, ServiceRequest
+from .forms import UserRegistrationForm, UserProfileForm, CaregiverProfileForm, DoctorProfileForm, AdminProfileForm
 
 def home(request):
     if request.user.is_authenticated:
@@ -17,7 +17,26 @@ def user_login(request):
         user = authenticate(request, username=email, password=password)
         if user is not None:
             login(request, user)
-            return redirect('dashboard')
+            # Redirect based on user role and profile completion
+            if user.role == 'elderly':
+                if not hasattr(user, 'elderlyuser') or not user.elderlyuser.first_name:
+                    return redirect('profile')
+                return redirect('dashboard')
+            elif user.role == 'caregiver':
+                if not hasattr(user, 'caregiver') or not user.caregiver.first_name:
+                    return redirect('profile')
+                return redirect('dashboard')
+            elif user.role == 'doctor':
+                if not hasattr(user, 'doctor') or not user.doctor.first_name:
+                    return redirect('profile')
+                if user.doctor.verified_status:
+                    return redirect('dashboard')
+                else:
+                    return render(request, 'elderly/unverified_doctor.html')
+            elif user.role == 'admin':
+                if not hasattr(user, 'admin') or not user.admin.permissions:
+                    return redirect('profile')
+                return redirect('admin_dashboard')
         else:
             return render(request, 'elderly/login.html', {'error': 'Invalid credentials'})
     return render(request, 'elderly/login.html')
@@ -28,7 +47,7 @@ def user_register(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.username = form.cleaned_data['email']
-            user.set_password(form.cleaned_data['password1'])  # Use password1 from the form
+            user.set_password(form.cleaned_data['password1'])
             user.save()
             return redirect('login')
     else:
@@ -39,12 +58,23 @@ def user_register(request):
 def dashboard(request):
     user = request.user
     if user.role == 'elderly':
+        if not hasattr(user, 'elderlyuser') or not user.elderlyuser.first_name:
+            return redirect('profile')
         return render(request, 'elderly/dashboard.html')
     elif user.role == 'caregiver':
-        return render(request, 'elderly/caregiver_dashboard.html')
+        if not hasattr(user, 'caregiver') or not user.caregiver.first_name:
+            return redirect('profile')
+        assigned_users = ElderlyUser.objects.filter(id__in=user.caregiver.assigned_users)
+        return render(request, 'elderly/caregiver_dashboard.html', {'assigned_users': assigned_users})
     elif user.role == 'doctor':
+        if not hasattr(user, 'doctor') or not user.doctor.first_name:
+            return redirect('profile')
+        if not user.doctor.verified_status:
+            return render(request, 'elderly/unverified_doctor.html')
         return render(request, 'elderly/doctor_dashboard.html')
     elif user.role == 'admin':
+        if not hasattr(user, 'admin') or not user.admin.permissions:
+            return redirect('profile')
         return render(request, 'elderly/admin_dashboard.html')
     return redirect('login')
 
@@ -58,7 +88,11 @@ def profile(request):
                 form.save()
                 return redirect('dashboard')
         else:
-            form = UserProfileForm(instance=user.elderlyuser)
+            if hasattr(user, 'elderlyuser'):
+                form = UserProfileForm(instance=user.elderlyuser)
+            else:
+                ElderlyUser.objects.create(user=user)
+                form = UserProfileForm()
     elif user.role == 'caregiver':
         if request.method == 'POST':
             form = CaregiverProfileForm(request.POST, instance=user.caregiver)
@@ -66,7 +100,11 @@ def profile(request):
                 form.save()
                 return redirect('dashboard')
         else:
-            form = CaregiverProfileForm(instance=user.caregiver)
+            if hasattr(user, 'caregiver'):
+                form = CaregiverProfileForm(instance=user.caregiver)
+            else:
+                Caregiver.objects.create(user=user)
+                form = CaregiverProfileForm()
     elif user.role == 'doctor':
         if request.method == 'POST':
             form = DoctorProfileForm(request.POST, instance=user.doctor)
@@ -74,7 +112,11 @@ def profile(request):
                 form.save()
                 return redirect('dashboard')
         else:
-            form = DoctorProfileForm(instance=user.doctor)
+            if hasattr(user, 'doctor'):
+                form = DoctorProfileForm(instance=user.doctor)
+            else:
+                Doctor.objects.create(user=user)
+                form = DoctorProfileForm()
     elif user.role == 'admin':
         if request.method == 'POST':
             form = AdminProfileForm(request.POST, instance=user.admin)
@@ -82,7 +124,11 @@ def profile(request):
                 form.save()
                 return redirect('dashboard')
         else:
-            form = AdminProfileForm(instance=user.admin)
+            if hasattr(user, 'admin'):
+                form = AdminProfileForm(instance=user.admin)
+            else:
+                Admin.objects.create(user=user)
+                form = AdminProfileForm()
     return render(request, 'elderly/profile.html', {'form': form})
 
 @login_required
@@ -129,3 +175,9 @@ def notifications(request):
 @login_required
 def logout_confirm(request):
     return render(request, 'elderly/logout_confirm.html')
+
+def logout_confirm_action(request):
+    if request.method == 'POST':
+        logout(request)
+        return redirect('home')
+    return redirect('logout_confirm')

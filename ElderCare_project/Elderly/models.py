@@ -30,31 +30,31 @@ class CustomUser(AbstractUser):
 
 class ElderlyUser(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    date_of_birth = models.DateField()
-    gender = models.CharField(max_length=10)
-    address = models.TextField()
-    emergency_contact = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True)
+    gender = models.CharField(max_length=10, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    emergency_contact = models.CharField(max_length=100, blank=True, null=True)
 
 class Caregiver(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    relationship = models.CharField(max_length=50)
-    assigned_users = models.JSONField()
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
+    relationship = models.CharField(max_length=50, blank=True, null=True)
+    assigned_users = models.JSONField(blank=True, null=True)
 
 class Doctor(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    specialization = models.CharField(max_length=100)
-    license_number = models.CharField(max_length=50)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
+    specialization = models.CharField(max_length=100, blank=True, null=True)
+    license_number = models.CharField(max_length=50, blank=True, null=True)
     verified_status = models.BooleanField(default=False)
 
 class Admin(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    permissions = models.JSONField()
+    permissions = models.JSONField(blank=True, null=True)
 
 class HealthRecord(models.Model):
     elderly_user = models.ForeignKey(ElderlyUser, on_delete=models.CASCADE)
@@ -103,7 +103,7 @@ class EmergencyNotification(models.Model):
         ('resolved', 'Resolved'),
     )
     elderly_user = models.ForeignKey(ElderlyUser, on_delete=models.CASCADE)
-    caregiver = models.ForeignKey(Caregiver, on_delete=models.CASCADE)
+    caregiver = models.ForeignKey(Caregiver, on_delete=models.CASCADE, blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=12, choices=STATUS_CHOICES)
 
