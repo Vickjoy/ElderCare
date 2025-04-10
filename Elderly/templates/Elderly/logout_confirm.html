@@ -1,0 +1,14 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="logout-confirm-container">
+    <h2>Logout Confirmation</h2>
+    <p>Are you sure you want to log out?</p>
+    <form method="post" action="{% url 'elderly:logout_confirm_action' %}">
+        {% csrf_token %}
+        <button type="submit">Yes, Logout</button>
+    </form>
+    <a href="{% url 'elderly:dashboard' %}">No, Cancel</a>
+</div>
+{% endblock %}

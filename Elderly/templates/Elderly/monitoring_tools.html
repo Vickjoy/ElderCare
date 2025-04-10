@@ -1,0 +1,58 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h2>Monitoring Tools</h2>
+    {% if health_records %}
+        <ul>
+            {% for elderly_user, records in health_records.items %}
+            <li>
+                <strong>{{ elderly_user.first_name }} {{ elderly_user.last_name }}</strong><br>
+                <span>Date of Birth: {{ elderly_user.date_of_birth }}</span><br>
+                <span>Gender: {{ elderly_user.gender }}</span><br>
+                <span>Address: {{ elderly_user.address }}</span><br>
+                <span>Emergency Contact: {{ elderly_user.emergency_contact }}</span>
+                <br>
+                <h4>Health Records</h4>
+                <ul>
+                    {% for record in records %}
+                    <li>
+                        <span>Medical History: {{ record.medical_history }}</span><br>
+                        <span>Current Medications: {{ record.current_medications }}</span><br>
+                        <span>Allergies: {{ record.allergies }}</span><br>
+                        <span>Last Updated: {{ record.last_updated }}</span><br>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <h4>Abnormal Readings</h4>
+                <ul>
+                    {% for record in records %}
+                    {% if record.blood_pressure < health_metrics_ranges.blood_pressure.low or record.blood_pressure > health_metrics_ranges.blood_pressure.high %}
+                    <li>
+                        <span>Blood Pressure: {{ record.blood_pressure }} (Abnormal)</span><br>
+                        <a href="{% url 'appointment_scheduling' %}">Schedule Appointment</a>
+                    </li>
+                    {% endif %}
+                    {% if record.heart_rate < health_metrics_ranges.heart_rate.low or record.heart_rate > health_metrics_ranges.heart_rate.high %}
+                    <li>
+                        <span>Heart Rate: {{ record.heart_rate }} (Abnormal)</span><br>
+                        <a href="{% url 'appointment_scheduling' %}">Schedule Appointment</a>
+                    </li>
+                    {% endif %}
+                    {% if record.sugar_levels < health_metrics_ranges.sugar_levels.low or record.sugar_levels > health_metrics_ranges.sugar_levels.high %}
+                    <li>
+                        <span>Sugar Levels: {{ record.sugar_levels }} (Abnormal)</span><br>
+                        <a href="{% url 'appointment_scheduling' %}">Schedule Appointment</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No health records available.</p>
+    {% endif %}
+</div>
+{% endblock %}

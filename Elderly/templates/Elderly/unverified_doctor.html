@@ -1,0 +1,9 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="unverified-doctor-container">
+    <h2>Welcome, {{ user.first_name }} {{ user.last_name }}</h2>
+    <p>Your account is currently awaiting verification by an admin. Please check back later.</p>
+</div>
+{% endblock %}

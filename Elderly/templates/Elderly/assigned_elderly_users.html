@@ -1,0 +1,25 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h2>Assigned Elderly Users</h2>
+    {% if elderly_users %}
+        <ul>
+            {% for elderly_user in elderly_users %}
+            <li>
+                <strong>{{ elderly_user.first_name }} {{ elderly_user.last_name }}</strong><br>
+                <span>Date of Birth: {{ elderly_user.date_of_birth }}</span><br>
+                <span>Gender: {{ elderly_user.gender }}</span><br>
+                <span>Address: {{ elderly_user.address }}</span><br>
+                <span>Emergency Contact: {{ elderly_user.emergency_contact }}</span>
+                <br>
+                <a href="{% url 'elderly_profile' elderly_user.id %}">View Detailed Profile</a>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No assigned elderly users.</p>
+    {% endif %}
+</div>
+{% endblock %}

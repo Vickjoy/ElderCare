@@ -1,0 +1,19 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h2>Emergency Alerts</h2>
+    <ul>
+        {% for notification in emergency_notifications %}
+        <li>
+            <strong>{{ notification.elderly_user.first_name }} {{ notification.elderly_user.last_name }}</strong><br>
+            <span>Timestamp: {{ notification.timestamp }}</span><br>
+            <span>Status: {{ notification.status }}</span><br>
+            <a href="{% url 'acknowledge_emergency' notification.id %}">Help Is On the Way</a>
+            <a href="{% url 'resolve_emergency' notification.id %}">Resolve Emergency</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

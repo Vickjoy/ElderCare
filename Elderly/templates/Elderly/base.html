@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elderly Care System</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Elderly Care System</h1>
+        <nav>
+            <ul>
+                <li><a href="{% url 'elderly:home' %}">Home</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'elderly:dashboard' %}">Dashboard</a></li>
+                    <li><a href="{% url 'elderly:profile' %}">Profile</a></li>
+                    <li><a href="{% url 'elderly:logout' %}">Logout</a></li>
+                {% else %}
+                    <li><a href="{% url 'elderly:user_login' %}">Login</a></li>
+                    <li><a href="{% url 'elderly:user_register' %}">Register</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+    <footer>
+        <p>&copy; 2025 Elderly Care System</p>
+    </footer>
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

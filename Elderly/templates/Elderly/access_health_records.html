@@ -1,0 +1,9 @@
+<!-- elderly/templates/elderly/access_health_records.html -->
+
+{% extends "elderly/base.html" %}
+
+{% block content %}
+<h1>Health Records for {{ health_record.elderly_user.get_full_name }}</h1>
+<p>Date: {{ health_record.date }}</p>
+<p>Observations: {{ health_record.observations }}</p>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'elderly/base.html' %}
+
+{% block content %}
+<h2>Notifications</h2>
+<ul>
+    {% for notification in notifications %}
+    <li>
+        <strong>Message:</strong> {{ notification.message }}<br>
+        <strong>Status:</strong> {{ notification.status }}<br>
+        <strong>Timestamp:</strong> {{ notification.timestamp }}
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

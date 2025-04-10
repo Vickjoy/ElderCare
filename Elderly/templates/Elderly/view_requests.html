@@ -1,0 +1,25 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h2>Pending Assistance Requests</h2>
+    {% if pending_requests %}
+        <ul>
+            {% for request in pending_requests %}
+            <li>
+                <strong>{{ request.elderly_user.first_name }} {{ request.elderly_user.last_name }}</strong><br>
+                <span>Location: {{ request.elderly_user.address }}</span><br>
+                <span>Age: {{ request.elderly_user.date_of_birth|timesince:"years" }}</span><br>
+                <span>Specialization: {{ request.specialization }}</span><br>
+                <span>Timestamp: {{ request.timestamp }}</span><br>
+                <a href="{% url 'accept_request' request.id %}">Accept</a>
+                <a href="{% url 'reject_request' request.id %}">Reject</a>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No pending requests available.</p>
+    {% endif %}
+</div>
+{% endblock %}

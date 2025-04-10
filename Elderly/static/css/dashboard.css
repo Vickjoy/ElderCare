@@ -1,0 +1,56 @@
+/* Dashboard Container */
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Emergency Button */
+.emergency-button {
+    margin-bottom: 20px;
+}
+
+.emergency-button button {
+    background-color: #ff0000;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.emergency-button button:hover {
+    background-color: #cc0000;
+}
+
+/* Dashboard Content */
+.dashboard-content {
+    width: 80%;
+    max-width: 800px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Dashboard Sections */
+.dashboard-section {
+    margin-bottom: 20px;
+}
+
+.dashboard-section h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.dashboard-section a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.dashboard-section a:hover {
+    text-decoration: underline;
+}

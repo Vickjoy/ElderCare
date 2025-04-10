@@ -1,0 +1,42 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h2>Medication Management</h2>
+    {% if prescriptions %}
+        <ul>
+            {% for elderly_user, user_prescriptions in prescriptions.items %}
+            <li>
+                <strong>{{ elderly_user.first_name }} {{ elderly_user.last_name }}</strong><br>
+                <span>Date of Birth: {{ elderly_user.date_of_birth }}</span><br>
+                <span>Gender: {{ elderly_user.gender }}</span><br>
+                <span>Address: {{ elderly_user.address }}</span><br>
+                <span>Emergency Contact: {{ elderly_user.emergency_contact }}</span>
+                <br>
+                <h4>Prescriptions</h4>
+                <ul>
+                    {% for prescription in user_prescriptions %}
+                    <li>
+                        <span>Medication Name: {{ prescription.medication_name }}</span><br>
+                        <span>Dosage: {{ prescription.dosage }}</span><br>
+                        <span>Duration: {{ prescription.duration }}</span><br>
+                        <span>Additional Notes: {{ prescription.additional_notes }}</span><br>
+                        <span>Payment Status: {{ prescription.request.billing.payment_status }}</span><br>
+                        <a href="{% url 'mark_prescription_completed' prescription.id %}">Mark as Completed</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <h4>Send Reminders</h4>
+                <form action="{% url 'send_medication_reminder' elderly_user.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit">Send Reminder</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No prescriptions available.</p>
+    {% endif %}
+</div>
+{% endblock %}

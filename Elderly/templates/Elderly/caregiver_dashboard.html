@@ -1,0 +1,31 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="emergency-button">
+        <button id="emergency-button" onclick="location.href='{% url 'elderly:emergency_button' %}'">Emergency Help</button>
+    </div>
+    <div class="dashboard-content">
+        <h2>Welcome to Your Caregiver Dashboard</h2>
+        <div class="dashboard-section">
+            <h3><a href="{% url 'elderly:assigned_elderly_users' %}">Assigned Elderly Users</a></h3>
+        </div>
+        <div class="dashboard-section">
+            <h3><a href="{% url 'elderly:monitoring_tools' %}">Monitoring Tools</a></h3>
+        </div>
+        <div class="dashboard-section">
+            <h3><a href="{% url 'elderly:medication_management' %}">Medication Management</a></h3>
+        </div>
+        <div class="dashboard-section">
+            <h3><a href="{% url 'elderly:appointment_scheduling' %}">Appointment Scheduling</a></h3>
+        </div>
+        <div class="dashboard-section">
+            <h3><a href="{% url 'elderly:emergency_alerts' %}">Emergency Alerts</a></h3>
+        </div>
+        <div class="dashboard-section">
+            <h3><a href="{% url 'elderly:notifications' %}">Notifications</a></h3>
+        </div>
+    </div>
+</div>
+{% endblock %}

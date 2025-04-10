@@ -1,0 +1,47 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="emergency-button">
+        <button id="emergency-button" onclick="location.href='{% url 'elderly:emergency_button' %}'">Emergency Help</button>
+    </div>
+    <div class="dashboard-content">
+        <h2>Welcome to Your Dashboard</h2>
+        <div class="dashboard-section">
+            <h3>Service Booking</h3>
+            <form action="{% url 'elderly:service_booking' %}" method="post">
+                {% csrf_token %}
+                <label for="specialization">Specialization:</label>
+                <select name="specialization" id="specialization">
+                    <option value="cardiologist">Cardiologist</option>
+                    <option value="neurologist">Neurologist</option>
+                    <option value="geriatrician">Geriatrician</option>
+                    <!-- Add more specializations as needed -->
+                </select>
+                <button type="submit">Request Assistance</button>
+            </form>
+        </div>
+        <div class="dashboard-section">
+            <h3>Health Records</h3>
+            <a href="{% url 'elderly:health_records' %}">View Health Records</a>
+        </div>
+        <div class="dashboard-section">
+            <h3>Prescriptions</h3>
+            <a href="{% url 'elderly:prescriptions' %}">View Prescriptions</a>
+        </div>
+        <div class="dashboard-section">
+            <h3>Billing Section</h3>
+            <a href="{% url 'elderly:billing_section' %}">View Billing Information</a>
+        </div>
+        <div class="dashboard-section">
+            <h3>Medication Reminders</h3>
+            <a href="{% url 'elderly:medication_reminders' %}">View Medication Reminders</a>
+        </div>
+        <div class="dashboard-section">
+            <h3>Notifications</h3>
+            <a href="{% url 'elderly:notifications' %}">View Notifications</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

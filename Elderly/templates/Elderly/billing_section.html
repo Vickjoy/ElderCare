@@ -1,0 +1,14 @@
+{% extends 'elderly/base.html' %}
+
+{% block content %}
+<h2>Billing Section</h2>
+<ul>
+    {% for bill in bills %}
+    <li>
+        <strong>Service Cost:</strong> ${{ bill.service_cost }}<br>
+        <strong>Payment Status:</strong> {{ bill.payment_status }}<br>
+        <strong>Timestamp:</strong> {{ bill.timestamp }}
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-content">
+        <h2>Welcome to Your Doctor Dashboard</h2>
+        <div class="dashboard-section">
+            <h3><a href="{% url 'elderly:view_requests' %}">View Requests</a></h3>
+        </div>
+        <div class="dashboard-section">
+            <h3><a href="{% url 'elderly:health_records' %}">Access Health Records</a></h3>
+        </div>
+        <div class="dashboard-section">
+            <h3><a href="{% url 'elderly:record_observations' %}">Record Observations</a></h3>
+        </div>
+        <div class="dashboard-section">
+            <h3><a href="{% url 'elderly:issue_prescriptions' %}">Issue Prescriptions</a></h3>
+        </div>
+        <div class="dashboard-section">
+            <h3><a href="{% url 'elderly:specify_service_cost' %}">Specify Service Cost</a></h3>
+        </div>
+        <div class="dashboard-section">
+            <h3><a href="{% url 'elderly:complete_session' %}">Complete Session</a></h3>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+/* Center the registration form */
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 120vh;
+    background-color: #f4f4f9;
+}
+
+/* Style the registration form */
+.register-form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    text-align: center;
+}
+
+/* Style the form elements */
+.register-form label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.register-form input[type="email"],
+.register-form input[type="password"],
+.register-form select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.register-form button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.register-form button:hover {
+    background-color: #0056b3;
+}
+
+.register-form p {
+    margin-top: 10px;
+    color: #555;
+}
+
+.register-form a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.register-form a:hover {
+    text-decoration: underline;
+}
