@@ -1,0 +1,20 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="generate-reports-container">
+    <h2>Generate Reports</h2>
+    <div class="report-section">
+        <h3>Number of Requests: {{ num_requests }}</h3>
+    </div>
+    <div class="report-section">
+        <h3>Number of Completed Sessions: {{ num_completed_sessions }}</h3>
+    </div>
+    <div class="report-section">
+        <h3>Number of Emergency Notifications: {{ num_emergency_notifications }}</h3>
+    </div>
+    <div class="report-section">
+        <h3>Number of Resolved Emergencies: {{ num_resolved_emergencies }}</h3>
+    </div>
+</div>
+{% endblock %}

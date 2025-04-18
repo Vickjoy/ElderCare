@@ -1,7 +1,8 @@
+# urls.py
 from django.urls import path
 from . import views
 
-app_name = 'elderly'  # Define the app name
+app_name = 'elderly'
 
 urlpatterns = [
     path('', views.home, name='home'),  # Default view for the root URL
@@ -19,7 +20,8 @@ urlpatterns = [
     path('logout/', views.logout_confirm, name='logout'),  # Point to the logout confirmation view
     path('logout/confirm/', views.logout_confirm_action, name='logout_confirm_action'),  # Actual logout action
     path('unverified-doctor/', views.unverified_doctor, name='unverified_doctor'),
-    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),  # Ensure this line is correct
+    path('doctor-dashboard/', views.doctor_dashboard, name='doctor_dashboard'),  # Ensure this line is correct
     path('elderly-profile/<int:elderly_user_id>/', views.elderly_profile, name='elderly_profile'),
     path('acknowledge-emergency/<int:notification_id>/', views.acknowledge_emergency, name='acknowledge_emergency'),
     path('resolve-emergency/<int:notification_id>/', views.resolve_emergency, name='resolve_emergency'),
@@ -37,10 +39,15 @@ urlpatterns = [
     path('specify-service-cost/<int:request_id>/', views.specify_service_cost, name='specify_service_cost'),
     path('complete-session/<int:request_id>/', views.complete_session, name='complete_session'),
     path('verify-doctor/<int:doctor_id>/', views.verify_doctor, name='verify_doctor'),
+    path('verify-doctor-list/', views.verify_doctor_list, name='verify_doctor_list'),  # New URL for listing unverified doctors
     path('manage-users/', views.manage_users, name='manage_users'),
     path('generate-reports/', views.generate_reports, name='generate_reports'),
     path('system-settings/', views.system_settings, name='system_settings'),
     path('mark-prescription-completed/<int:prescription_id>/', views.mark_prescription_completed, name='mark_prescription_completed'),
     path('send-medication-reminder/<int:elderly_user_id>/', views.send_medication_reminder, name='send_medication_reminder'),
     path('schedule-appointment/<int:request_id>/', views.schedule_appointment, name='schedule_appointment'),
+    path('assign-caregiver-to-elderly/', views.assign_caregiver_to_elderly, name='assign_caregiver_to_elderly'),
+    path('deactivate-user/<int:user_id>/', views.deactivate_user, name='deactivate_user'),  # New path for deactivating users
+    path('pay-now/<int:bill_id>/', views.pay_now, name='pay_now'),
+    path('mark-medication-taken/<int:notification_id>/', views.mark_medication_taken, name='mark_medication_taken'),
 ]

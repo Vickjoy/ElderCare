@@ -1,0 +1,14 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="deactivate-user-container">
+    <h2>Deactivate User</h2>
+    <p>Are you sure you want to deactivate the user <strong>{{ user.email }}</strong>?</p>
+    <form method="post" action="{% url 'elderly:deactivate_user' user.id %}">
+        {% csrf_token %}
+        <button type="submit">Yes, Deactivate</button>
+    </form>
+    <a href="{% url 'elderly:manage_users' %}">No, Cancel</a>
+</div>
+{% endblock %}

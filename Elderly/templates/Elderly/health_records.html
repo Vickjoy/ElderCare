@@ -1,16 +1,36 @@
 {% extends 'elderly/base.html' %}
+{% load static %}
 
 {% block content %}
-<h2>Health Records</h2>
-<ul>
-    {% for record in records %}
-    <li>
-        <strong>Medical History:</strong> {{ record.medical_history }}<br>
-        <strong>Current Medications:</strong> {{ record.current_medications }}<br>
-        <strong>Allergies:</strong> {{ record.allergies }}<br>
-        <strong>Last Updated:</strong> {{ record.last_updated }}
-    </li>
-    {% endfor %}
-</ul>
-<a href="{% url 'profile' %}">Update Health Records</a>
+<div class="health-records-container">
+    <h2>Your Health Records</h2>
+    <div class="health-record-section">
+        <h3>Medical History</h3>
+        <p>{{ health_record.medical_history }}</p>
+    </div>
+    <div class="health-record-section">
+        <h3>Current Medications</h3>
+        <p>{{ health_record.current_medications }}</p>
+    </div>
+    <div class="health-record-section">
+        <h3>Allergies</h3>
+        <p>{{ health_record.allergies }}</p>
+    </div>
+    <div class="health-record-section">
+        <h3>Health Metrics</h3>
+        <form method="post">
+            {% csrf_token %}
+            <label for="blood_pressure">Blood Pressure:</label>
+            <input type="text" id="blood_pressure" name="blood_pressure" value="{{ health_record.blood_pressure }}">
+            <br>
+            <label for="heart_rate">Heart Rate:</label>
+            <input type="number" id="heart_rate" name="heart_rate" value="{{ health_record.heart_rate }}">
+            <br>
+            <label for="sugar_levels">Sugar Levels:</label>
+            <input type="number" step="0.01" id="sugar_levels" name="sugar_levels" value="{{ health_record.sugar_levels }}">
+            <br>
+            <button type="submit">Save Health Metrics</button>
+        </form>
+    </div>
+</div>
 {% endblock %}

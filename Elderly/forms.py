@@ -37,7 +37,7 @@ class UserRegistrationForm(UserCreationForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = ElderlyUser
-        fields = ['first_name', 'last_name', 'date_of_birth', 'gender', 'address', 'emergency_contact']
+        fields = ['first_name', 'last_name', 'gender', 'address', 'emergency_contact']  # Removed date_of_birth
 
 class CaregiverProfileForm(forms.ModelForm):
     class Meta:

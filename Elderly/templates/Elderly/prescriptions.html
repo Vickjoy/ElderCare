@@ -1,15 +1,24 @@
 {% extends 'elderly/base.html' %}
+{% load static %}
 
 {% block content %}
-<h2>Prescriptions</h2>
-<ul>
-    {% for prescription in prescriptions %}
-    <li>
-        <strong>Medication Name:</strong> {{ prescription.medication_name }}<br>
-        <strong>Dosage:</strong> {{ prescription.dosage }}<br>
-        <strong>Duration:</strong> {{ prescription.duration }}<br>
-        <strong>Additional Notes:</strong> {{ prescription.additional_notes }}
-    </li>
-    {% endfor %}
-</ul>
+<div class="prescriptions-container">
+    <h2>Your Prescriptions</h2>
+    <ul>
+        {% for prescription in prescriptions %}
+        <li>
+            <strong>{{ prescription.medication_name }}</strong><br>
+            <span>Dosage: {{ prescription.dosage }}</span><br>
+            <span>Duration: {{ prescription.duration }}</span><br>
+            <span>Status: {% if prescription.request.status == 'completed' %}Completed{% else %}Active{% endif %}</span><br>
+            {% if prescription.request.status != 'completed' %}
+                <form method="post" action="{% url 'elderly:mark_prescription_completed' prescription.id %}">
+                    {% csrf_token %}
+                    <button type="submit">Mark as Completed</button>
+                </form>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}

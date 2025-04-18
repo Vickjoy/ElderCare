@@ -1,14 +1,17 @@
 {% extends 'elderly/base.html' %}
+{% load static %}
 
 {% block content %}
-<h2>Notifications</h2>
-<ul>
-    {% for notification in notifications %}
-    <li>
-        <strong>Message:</strong> {{ notification.message }}<br>
-        <strong>Status:</strong> {{ notification.status }}<br>
-        <strong>Timestamp:</strong> {{ notification.timestamp }}
-    </li>
-    {% endfor %}
-</ul>
+<div class="notifications-container">
+    <h2>Notifications</h2>
+    <ul>
+        {% for notification in notifications %}
+        <li>
+            <strong>{{ notification.message }}</strong><br>
+            <span>Status: {{ notification.status }}</span><br>
+            <span>Timestamp: {{ notification.timestamp }}</span><br>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}

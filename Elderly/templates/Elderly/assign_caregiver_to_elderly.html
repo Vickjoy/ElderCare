@@ -1,0 +1,28 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="assign-caregiver-container">
+    <h2>Assign Caregivers to Elderly Users</h2>
+    <form method="post" action="{% url 'elderly:assign_caregiver_to_elderly' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="caregiver">Caregiver:</label>
+            <select name="caregiver_id" id="caregiver" required>
+                {% for caregiver in caregivers %}
+                    <option value="{{ caregiver.user.id }}">{{ caregiver.user.email }} - {{ caregiver.first_name }} {{ caregiver.last_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="elderly_user">Elderly User:</label>
+            <select name="elderly_user_id" id="elderly_user" required>
+                {% for elderly_user in elderly_users %}
+                    <option value="{{ elderly_user.id }}">{{ elderly_user.user.email }} - {{ elderly_user.first_name }} {{ elderly_user.last_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit">Assign Caregiver</button>
+    </form>
+</div>
+{% endblock %}

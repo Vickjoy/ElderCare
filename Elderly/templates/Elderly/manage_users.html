@@ -1,0 +1,33 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="manage-users-container">
+    <h2>Manage Users</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.email }}</td>
+                <td>{% if user.role == 'elderly' %}{{ user.elderlyuser.first_name }}{% elif user.role == 'caregiver' %}{{ user.caregiver.first_name }}{% elif user.role == 'doctor' %}{{ user.doctor.first_name }}{% elif user.role == 'admin' %}{{ user.admin.first_name }}{% endif %}</td>
+                <td>{% if user.role == 'elderly' %}{{ user.elderlyuser.last_name }}{% elif user.role == 'caregiver' %}{{ user.caregiver.last_name }}{% elif user.role == 'doctor' %}{{ user.doctor.last_name }}{% elif user.role == 'admin' %}{{ user.admin.last_name }}{% endif %}</td>
+                <td>{{ user.role }}</td>
+                <td>
+                    <a href="{% url 'elderly:profile' %}">Edit Profile</a>
+                    <a href="{% url 'elderly:deactivate_user' user.id %}">Deactivate</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

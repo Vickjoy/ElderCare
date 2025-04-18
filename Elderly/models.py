@@ -9,7 +9,6 @@ class CustomUser(AbstractUser):
         ('admin', 'Admin'),
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
-
     groups = models.ManyToManyField(
         'auth.Group',
         related_name='customuser_set',
@@ -63,8 +62,10 @@ class Admin(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     permissions = models.JSONField(default=dict, blank=True, null=True)  # Initialize to an empty dictionary
 
+
+            
 class HealthRecord(models.Model):
-    elderly_user = models.ForeignKey(ElderlyUser, on_delete=models.CASCADE)
+    elderly_user = models.OneToOneField(ElderlyUser, on_delete=models.CASCADE)
     medical_history = models.TextField(blank=True, null=True)
     current_medications = models.TextField(blank=True, null=True)
     allergies = models.TextField(blank=True, null=True)
@@ -72,6 +73,25 @@ class HealthRecord(models.Model):
     heart_rate = models.IntegerField(blank=True, null=True)
     sugar_levels = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     last_updated = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            # Set default values for new health records
+            self.current_medications = "None"
+            self.allergies = "None"
+            
+            # Set default medical history based on specializations
+            self.medical_history = "Default Medical History:\n"
+            # Correctly access service requests through ElderlyUser
+            service_requests = ServiceRequest.objects.filter(elderly_user=self.elderly_user)
+            if service_requests.filter(specialization='cardiologist').exists():
+                self.medical_history += "- Cardiologist: No specific issues noted.\n"
+            if service_requests.filter(specialization='neurologist').exists():
+                self.medical_history += "- Neurologist: No specific issues noted.\n"
+            if service_requests.filter(specialization='geriatrician').exists():
+                self.medical_history += "- Geriatrician: No specific issues noted.\n"
+        
+        super().save(*args, **kwargs)
 
 class ServiceRequest(models.Model):
     STATUS_CHOICES = (
@@ -82,6 +102,7 @@ class ServiceRequest(models.Model):
         ('rejected', 'Rejected'),
     )
     elderly_user = models.ForeignKey(ElderlyUser, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True)  # Added doctor field
     specialization = models.CharField(max_length=100)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
     timestamp = models.DateTimeField(auto_now_add=True)

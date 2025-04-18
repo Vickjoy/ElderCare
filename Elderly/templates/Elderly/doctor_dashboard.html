@@ -8,21 +8,24 @@
         <div class="dashboard-section">
             <h3><a href="{% url 'elderly:view_requests' %}">View Requests</a></h3>
         </div>
-        <div class="dashboard-section">
-            <h3><a href="{% url 'elderly:health_records' %}">Access Health Records</a></h3>
-        </div>
-        <div class="dashboard-section">
-            <h3><a href="{% url 'elderly:record_observations' %}">Record Observations</a></h3>
-        </div>
-        <div class="dashboard-section">
-            <h3><a href="{% url 'elderly:issue_prescriptions' %}">Issue Prescriptions</a></h3>
-        </div>
-        <div class="dashboard-section">
-            <h3><a href="{% url 'elderly:specify_service_cost' %}">Specify Service Cost</a></h3>
-        </div>
-        <div class="dashboard-section">
-            <h3><a href="{% url 'elderly:complete_session' %}">Complete Session</a></h3>
-        </div>
+        {% if current_request %}
+            <div class="dashboard-section">
+                <h3>Elderly User: {{ current_request.elderly_user.first_name }} {{ current_request.elderly_user.last_name }}</h3>
+                <a href="{% url 'elderly:access_health_records' elderly_user_id=current_request.elderly_user.id %}">Access Health Records</a>
+            </div>
+            <div class="dashboard-section">
+                <h3><a href="{% url 'elderly:record_observations' request_id=current_request.id %}">Record Observations</a></h3>
+            </div>
+            <div class="dashboard-section">
+                <h3><a href="{% url 'elderly:issue_prescriptions' request_id=current_request.id %}">Issue Prescriptions</a></h3>
+            </div>
+            <div class="dashboard-section">
+                <h3><a href="{% url 'elderly:specify_service_cost' request_id=current_request.id %}">Specify Service Cost</a></h3>
+            </div>
+            <div class="dashboard-section">
+                <h3><a href="{% url 'elderly:complete_session' request_id=current_request.id %}">Complete Session</a></h3>
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

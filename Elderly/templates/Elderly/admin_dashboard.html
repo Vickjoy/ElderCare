@@ -1,0 +1,21 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+{% block content %}
+<div class="admin-dashboard-container">
+    <div class="admin-dashboard-content">
+        <h2>Welcome to Your Admin Dashboard</h2>
+        <div class="admin-dashboard-section">
+            <h3><a href="{% url 'elderly:assign_caregiver_to_elderly' %}">Assign Caregivers to Elderly Users</a></h3>
+        </div>
+        <div class="admin-dashboard-section">
+            <h3><a href="{% url 'elderly:verify_doctor_list' %}">Verify Doctors</a></h3>  <!-- Corrected URL name -->
+        </div>
+        <div class="admin-dashboard-section">
+            <h3><a href="{% url 'elderly:manage_users' %}">Manage Users</a></h3>
+        </div>
+        <div class="admin-dashboard-section">
+            <h3><a href="{% url 'elderly:generate_reports' %}">Generate Reports</a></h3>
+        </div>
+    </div>
+</div>
+{% endblock %}

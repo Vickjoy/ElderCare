@@ -1,14 +1,22 @@
 {% extends 'elderly/base.html' %}
+{% load static %}
 
 {% block content %}
-<h2>Billing Section</h2>
-<ul>
-    {% for bill in bills %}
-    <li>
-        <strong>Service Cost:</strong> ${{ bill.service_cost }}<br>
-        <strong>Payment Status:</strong> {{ bill.payment_status }}<br>
-        <strong>Timestamp:</strong> {{ bill.timestamp }}
-    </li>
-    {% endfor %}
-</ul>
+<div class="billing-section-container">
+    <h2>Billing Information</h2>
+    <ul>
+        {% for bill in bills %}
+        <li>
+            <strong>Service Cost: ${{ bill.service_cost }}</strong><br>
+            <span>Payment Status: {{ bill.payment_status }}</span><br>
+            {% if bill.payment_status == 'pending' %}
+                <form method="post" action="{% url 'elderly:pay_now' bill.id %}">
+                    {% csrf_token %}
+                    <button type="submit">Pay Now</button>
+                </form>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}

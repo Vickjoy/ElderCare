@@ -21,6 +21,9 @@
                 </select>
                 <button type="submit">Request Assistance</button>
             </form>
+            {% if request_status %}
+                <p>Request Status: {{ request_status }}</p>
+            {% endif %}
         </div>
         <div class="dashboard-section">
             <h3>Health Records</h3>

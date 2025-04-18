@@ -1,0 +1,25 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+{% block content %}
+<div class="verify-doctor-list-container">
+    <div class="verify-doctor-list-content">
+        <h2>List of Unverified Doctors</h2>
+        <ul>
+            {% for doctor in doctors %}
+                <li>
+                    <h3>{{ doctor.user.first_name }} {{ doctor.user.last_name }}</h3>
+                    <p>Email: {{ doctor.user.email }}</p>
+                    <p>Specialization: {{ doctor.specialization }}</p>
+                    <form method="post" action="{% url 'elderly:verify_doctor' doctor_id=doctor.id %}">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="accept">Accept</button>
+                        <button type="submit" name="action" value="reject">Reject</button>
+                    </form>
+                </li>
+            {% empty %}
+                <li>No unverified doctors found.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

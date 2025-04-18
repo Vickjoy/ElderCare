@@ -1,3 +1,4 @@
+# views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -35,12 +36,11 @@ def user_login(request):
                 if not hasattr(user, 'doctor') or not user.doctor.first_name:
                     return redirect('elderly:profile')
                 if user.doctor.verified_status:
-                    return redirect('elderly:dashboard')
+                    return redirect('elderly:doctor_dashboard')
                 else:
                     return render(request, 'elderly/unverified_doctor.html')
             elif user.role == 'admin':
-                if not hasattr(user, 'admin') or not user.admin.permissions:
-                    return redirect('elderly:profile')
+                # Admins do not need to complete their profile
                 return redirect('elderly:admin_dashboard')
         else:
             return render(request, 'elderly/login.html', {'error': 'Invalid credentials'})
@@ -65,7 +65,16 @@ def dashboard(request):
     if user.role == 'elderly':
         if not hasattr(user, 'elderlyuser') or not user.elderlyuser.first_name:
             return redirect('elderly:profile')
-        return render(request, 'elderly/dashboard.html')
+        # Ensure default health record exists
+        health_record, created = HealthRecord.objects.get_or_create(elderly_user=user.elderlyuser)
+        if created:
+            health_record.save()
+        # Get the latest service request status
+        request_status = None
+        latest_request = ServiceRequest.objects.filter(elderly_user=user.elderlyuser).order_by('-timestamp').first()
+        if latest_request:
+            request_status = latest_request.status
+        return render(request, 'elderly/dashboard.html', {'request_status': request_status})
     elif user.role == 'caregiver':
         if not hasattr(user, 'caregiver') or not user.caregiver.first_name:
             return redirect('elderly:profile')
@@ -88,11 +97,9 @@ def dashboard(request):
             return redirect('elderly:profile')
         if not user.doctor.verified_status:
             return render(request, 'elderly/unverified_doctor.html')
-        return render(request, 'elderly/doctor_dashboard.html')
+        return redirect('elderly:doctor_dashboard')
     elif user.role == 'admin':
-        if not hasattr(user, 'admin') or not user.admin.permissions:
-            return redirect('elderly:profile')
-        return render(request, 'elderly/admin_dashboard.html')
+        return redirect('elderly:admin_dashboard')
     return redirect('elderly:user_login')
 
 @login_required
@@ -135,17 +142,8 @@ def profile(request):
                 Doctor.objects.create(user=user)
                 form = DoctorProfileForm()
     elif user.role == 'admin':
-        if request.method == 'POST':
-            form = AdminProfileForm(request.POST, instance=user.admin)
-            if form.is_valid():
-                form.save()
-                return redirect('elderly:dashboard')
-        else:
-            if hasattr(user, 'admin'):
-                form = AdminProfileForm(instance=user.admin)
-            else:
-                Admin.objects.create(user=user)
-                form = AdminProfileForm()
+        # Admins do not need to complete their profile
+        return redirect('elderly:admin_dashboard')
     return render(request, 'elderly/profile.html', {'form': form})
 
 @login_required
@@ -185,7 +183,7 @@ def health_records(request):
 @login_required
 def prescriptions(request):
     if request.user.role == 'elderly':
-        prescriptions = Prescription.objects.filter(request__elderly_user=request.user.elderlyuser)
+        prescriptions = Prescription.objects.filter(request__elderly_user=request.user.elderlyuser, request__status='accepted')
         return render(request, 'elderly/prescriptions.html', {'prescriptions': prescriptions})
     return redirect('elderly:dashboard')
 
@@ -199,8 +197,8 @@ def billing_section(request):
 @login_required
 def medication_reminders(request):
     if request.user.role == 'elderly':
-        # Placeholder for medication reminders
-        return render(request, 'elderly/medication_reminders.html')
+        notifications = FeedbackNotification.objects.filter(notification__elderly_user=request.user.elderlyuser, status='sent')
+        return render(request, 'elderly/medication_reminders.html', {'notifications': notifications})
     return redirect('elderly:dashboard')
 
 @login_required
@@ -213,8 +211,6 @@ def notifications(request):
             notification__elderly_user__id__in=request.user.caregiver.assigned_users
         ).order_by('-timestamp')
         return render(request, 'elderly/notifications.html', {'notifications': notifications})
-    elif request.user.role == 'doctor':
-        return redirect('elderly:view_requests')
     return redirect('elderly:dashboard')
 
 @login_required
@@ -234,8 +230,7 @@ def unverified_doctor(request):
 @login_required
 def admin_dashboard(request):
     if request.user.role == 'admin':
-        if not hasattr(user, 'admin') or not user.admin.permissions:
-            return redirect('elderly:profile')
+        # Fetch unverified doctors
         doctors = Doctor.objects.filter(verified_status=False)
         return render(request, 'elderly/admin_dashboard.html', {'doctors': doctors})
     return redirect('elderly:dashboard')
@@ -282,21 +277,18 @@ def monitoring_tools(request):
     if request.user.role == 'caregiver':
         # Ensure assigned_users is not None
         assigned_users = request.user.caregiver.assigned_users if request.user.caregiver.assigned_users else []
-        
         # Fetch health records for assigned elderly users
         health_records = {}
         for user_id in assigned_users:
             elderly_user = get_object_or_404(ElderlyUser, id=user_id)
             records = HealthRecord.objects.filter(elderly_user=elderly_user).order_by('-last_updated')
             health_records[elderly_user] = records
-        
         # Estimated ranges for health metrics
         health_metrics_ranges = {
             'blood_pressure': {'low': (90, 120), 'high': (140, 180)},
             'heart_rate': {'low': 60, 'high': 100},
             'sugar_levels': {'low': 70, 'high': 110},  # Fasting glucose levels
         }
-        
         return render(request, 'elderly/monitoring_tools.html', {
             'health_records': health_records,
             'health_metrics_ranges': health_metrics_ranges
@@ -308,14 +300,12 @@ def medication_management(request):
     if request.user.role == 'caregiver':
         # Ensure assigned_users is not None
         assigned_users = request.user.caregiver.assigned_users if request.user.caregiver.assigned_users else []
-        
         # Fetch prescriptions for assigned elderly users
         prescriptions = {}
         for user_id in assigned_users:
             elderly_user = get_object_or_404(ElderlyUser, id=user_id)
             user_prescriptions = Prescription.objects.filter(request__elderly_user=elderly_user)
             prescriptions[elderly_user] = user_prescriptions
-        
         return render(request, 'elderly/medication_management.html', {
             'prescriptions': prescriptions
         })
@@ -326,14 +316,12 @@ def appointment_scheduling(request):
     if request.user.role == 'caregiver':
         # Ensure assigned_users is not None
         assigned_users = request.user.caregiver.assigned_users if request.user.caregiver.assigned_users else []
-        
         # Fetch service requests for assigned elderly users
         service_requests = {}
         for user_id in assigned_users:
             elderly_user = get_object_or_404(ElderlyUser, id=user_id)
             user_requests = ServiceRequest.objects.filter(elderly_user=elderly_user, status='pending')
             service_requests[elderly_user] = user_requests
-        
         return render(request, 'elderly/appointment_scheduling.html', {
             'service_requests': service_requests
         })
@@ -344,10 +332,8 @@ def assigned_elderly_users(request):
     if request.user.role == 'caregiver':
         # Ensure assigned_users is not None
         assigned_users = request.user.caregiver.assigned_users if request.user.caregiver.assigned_users else []
-        
         # Fetch detailed profiles for assigned elderly users
         elderly_users = ElderlyUser.objects.filter(id__in=assigned_users)
-        
         return render(request, 'elderly/assigned_elderly_users.html', {
             'elderly_users': elderly_users
         })
@@ -358,12 +344,10 @@ def emergency_alerts(request):
     if request.user.role == 'caregiver':
         # Ensure assigned_users is not None
         assigned_users = request.user.caregiver.assigned_users if request.user.caregiver.assigned_users else []
-        
         emergency_notifications = EmergencyNotification.objects.filter(
             elderly_user__id__in=assigned_users,
             status='sent'
         ).order_by('-timestamp')
-        
         return render(request, 'elderly/emergency_alerts.html', {
             'emergency_notifications': emergency_notifications
         })
@@ -372,9 +356,9 @@ def emergency_alerts(request):
 @login_required
 def view_requests(request):
     if request.user.role == 'doctor':
-        if not hasattr(user, 'doctor') or not user.doctor.first_name:
+        if not hasattr(request.user, 'doctor') or not request.user.doctor.first_name:
             return redirect('elderly:profile')
-        if not user.doctor.verified_status:
+        if not request.user.doctor.verified_status:
             return render(request, 'elderly/unverified_doctor.html')
         pending_requests = ServiceRequest.objects.filter(status='pending')
         return render(request, 'elderly/view_requests.html', {'pending_requests': pending_requests})
@@ -386,9 +370,10 @@ def accept_request(request, request_id):
         try:
             service_request = ServiceRequest.objects.get(id=request_id, status='pending')
             service_request.status = 'accepted'
+            service_request.doctor = request.user.doctor
             service_request.save()
-            # Additional logic to handle request acceptance
-            return redirect('elderly:access_health_records', elderly_user_id=service_request.elderly_user.id)
+            # Redirect to doctor dashboard
+            return redirect('elderly:doctor_dashboard')
         except ServiceRequest.DoesNotExist:
             pass
     return redirect('elderly:dashboard')
@@ -402,7 +387,7 @@ def reject_request(request, request_id):
                 reason = request.POST.get('reason', '')
                 service_request.status = 'rejected'
                 service_request.save()
-                # Additional logic to handle request rejection
+                # Redirect back to view requests
                 return redirect('elderly:view_requests')
         except ServiceRequest.DoesNotExist:
             pass
@@ -413,8 +398,10 @@ def access_health_records(request, elderly_user_id):
     if request.user.role == 'doctor':
         try:
             elderly_user = ElderlyUser.objects.get(id=elderly_user_id)
-            records = HealthRecord.objects.filter(elderly_user=elderly_user)
-            return render(request, 'elderly/health_records.html', {'records': records, 'elderly_user': elderly_user})
+            health_record, created = HealthRecord.objects.get_or_create(elderly_user=elderly_user)
+            if created:
+                health_record.save()
+            return render(request, 'elderly/health_records.html', {'health_record': health_record, 'elderly_user': elderly_user})
         except ElderlyUser.DoesNotExist:
             pass
     return redirect('elderly:dashboard')
@@ -484,6 +471,13 @@ def complete_session(request, request_id):
     return redirect('elderly:dashboard')
 
 @login_required
+def verify_doctor_list(request):
+    if request.user.role == 'admin':
+        doctors = Doctor.objects.filter(verified_status=False)
+        return render(request, 'elderly/verify_doctor_list.html', {'doctors': doctors})
+    return redirect('elderly:dashboard')
+
+@login_required
 def verify_doctor(request, doctor_id):
     if request.user.role == 'admin':
         try:
@@ -491,13 +485,13 @@ def verify_doctor(request, doctor_id):
             if request.method == 'POST':
                 action = request.POST.get('action')
                 reason = request.POST.get('reason', '')
-                if action == 'verify':
+                if action == 'accept':
                     doctor.verified_status = True
                     doctor.save()
                 elif action == 'reject':
                     doctor.verified_status = False
                     doctor.save()
-                return redirect('elderly:admin_dashboard')
+                return redirect('elderly:verify_doctor_list')
         except Doctor.DoesNotExist:
             pass
     return redirect('elderly:dashboard')
@@ -505,7 +499,7 @@ def verify_doctor(request, doctor_id):
 @login_required
 def manage_users(request):
     if request.user.role == 'admin':
-        if not hasattr(user, 'admin') or not user.admin.permissions:
+        if not hasattr(request.user, 'admin') or not request.user.admin.permissions:
             return redirect('elderly:profile')
         users = CustomUser.objects.all()
         return render(request, 'elderly/manage_users.html', {'users': users})
@@ -514,16 +508,25 @@ def manage_users(request):
 @login_required
 def generate_reports(request):
     if request.user.role == 'admin':
-        if not hasattr(user, 'admin') or not user.admin.permissions:
+        if not hasattr(request.user, 'admin') or not request.user.admin.permissions:
             return redirect('elderly:profile')
         # Placeholder for generating reports
-        return render(request, 'elderly/generate_reports.html')
+        num_requests = ServiceRequest.objects.count()
+        num_completed_sessions = ServiceRequest.objects.filter(status='completed').count()
+        num_emergency_notifications = EmergencyNotification.objects.count()
+        num_resolved_emergencies = EmergencyNotification.objects.filter(status='resolved').count()
+        return render(request, 'elderly/generate_reports.html', {
+            'num_requests': num_requests,
+            'num_completed_sessions': num_completed_sessions,
+            'num_emergency_notifications': num_emergency_notifications,
+            'num_resolved_emergencies': num_resolved_emergencies
+        })
     return redirect('elderly:dashboard')
 
 @login_required
 def system_settings(request):
     if request.user.role == 'admin':
-        if not hasattr(user, 'admin') or not user.admin.permissions:
+        if not hasattr(request.user, 'admin') or not request.user.admin.permissions:
             return redirect('elderly:profile')
         # Placeholder for system settings
         return render(request, 'elderly/system_settings.html')
@@ -567,3 +570,97 @@ def schedule_appointment(request, request_id):
         except ServiceRequest.DoesNotExist:
             pass
     return redirect('elderly:dashboard')
+
+@login_required
+def assign_caregiver_to_elderly(request):
+    if request.user.role == 'admin':
+        if request.method == 'POST':
+            caregiver_id = request.POST.get('caregiver_id')
+            elderly_user_id = request.POST.get('elderly_user_id')
+            try:
+                caregiver = Caregiver.objects.get(user_id=caregiver_id)
+                elderly_user = ElderlyUser.objects.get(id=elderly_user_id)
+                if caregiver.assigned_users:
+                    caregiver.assigned_users.append(elderly_user_id)
+                else:
+                    caregiver.assigned_users = [elderly_user_id]
+                caregiver.save()
+                return redirect('elderly:assign_caregiver_to_elderly')
+            except (Caregiver.DoesNotExist, ElderlyUser.DoesNotExist):
+                pass
+        caregivers = Caregiver.objects.all()
+        elderly_users = ElderlyUser.objects.all()
+        return render(request, 'elderly/assign_caregiver_to_elderly.html', {
+            'caregivers': caregivers,
+            'elderly_users': elderly_users
+        })
+    return redirect('elderly:dashboard')
+
+@login_required
+def deactivate_user(request, user_id):
+    if request.user.role == 'admin':
+        try:
+            user = CustomUser.objects.get(id=user_id)
+            user.is_active = False
+            user.save()
+            return redirect('elderly:manage_users')
+        except CustomUser.DoesNotExist:
+            pass
+    return redirect('elderly:dashboard')
+
+@login_required
+def pay_now(request, bill_id):
+    if request.user.role == 'elderly':
+        try:
+            bill = Billing.objects.get(id=bill_id, request__elderly_user=request.user.elderlyuser)
+            if request.method == 'POST':
+                bill.payment_status = 'paid'
+                bill.save()
+                return redirect('elderly:billing_section')
+        except Billing.DoesNotExist:
+            pass
+    return redirect('elderly:dashboard')
+
+@login_required
+def mark_medication_taken(request, notification_id):
+    if request.user.role == 'elderly':
+        try:
+            notification = FeedbackNotification.objects.get(id=notification_id, notification__elderly_user=request.user.elderlyuser)
+            if request.method == 'POST':
+                notification.status = 'read'
+                notification.save()
+                return redirect('elderly:medication_reminders')
+        except FeedbackNotification.DoesNotExist:
+            pass
+    return redirect('elderly:dashboard')
+
+@login_required
+def doctor_dashboard(request):
+    print(f"User is authenticated: {request.user.is_authenticated}")
+    print(f"User role: {request.user.role}")
+    if request.user.role == 'doctor':
+        if not hasattr(request.user, 'doctor') or not request.user.doctor.first_name:
+            print("Doctor object does not exist or first name is missing.")
+            return redirect('elderly:profile')
+        if not request.user.doctor.verified_status:
+            print("Doctor is not verified.")
+            return render(request, 'elderly/unverified_doctor.html')
+        # Get the current accepted request
+        current_request = ServiceRequest.objects.filter(doctor=request.user.doctor, status='accepted').first()
+        print(f"Current request: {current_request}")
+        if current_request:
+            elderly_user = current_request.elderly_user
+            print(f"Elderly user: {elderly_user}")
+            health_record, created = HealthRecord.objects.get_or_create(elderly_user=elderly_user)
+            if created:
+                health_record.save()
+            print(f"Health record: {health_record}")
+            return render(request, 'elderly/doctor_dashboard.html', {
+                'current_request': current_request,
+                'health_record': health_record,
+                'elderly_user': elderly_user
+            })
+        print("No current accepted request.")
+        return render(request, 'elderly/doctor_dashboard.html', {'current_request': None})
+    print("User is not a doctor.")
+    return redirect('elderly:user_login')  # Redirect to login if user is not a doctor
