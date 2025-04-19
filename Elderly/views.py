@@ -167,6 +167,7 @@ def emergency_button(request):
         return redirect('elderly:dashboard')
     return redirect('elderly:dashboard')
 
+
 @login_required
 def health_records(request):
     if request.user.role == 'elderly':
@@ -180,8 +181,8 @@ def health_records(request):
                 return redirect('elderly:health_records')
         else:
             form = HealthRecordForm(instance=health_record)
-
-            return render(request, 'elderly/health_records.html', {'form': form, 'health_record': health_record})
+        
+        return render(request, 'elderly/health_records.html', {'form': form, 'health_record': health_record})
     elif request.user.role == 'doctor':
         elderly_user_id = request.GET.get('elderly_user_id')
         if elderly_user_id:
@@ -189,7 +190,10 @@ def health_records(request):
             health_record, created = HealthRecord.objects.get_or_create(elderly_user=elderly_user)
             if created:
                 health_record.save()
-            return render(request, 'elderly/doctor_health_records.html', {'health_record': health_record, 'elderly_user': elderly_user})
+            return render(request, 'elderly/access_health_records.html', {
+                'health_record': health_record,
+                'elderly_user': elderly_user,
+            })
     return redirect('elderly:dashboard')
 
 @login_required

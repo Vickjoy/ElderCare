@@ -65,12 +65,8 @@ class HealthRecordForm(forms.ModelForm):
             'heart_rate',
             'sugar_levels',
         ]
-
-    widgets = {
+        widgets = {
             'medical_history': forms.Textarea(attrs={'rows': 4}),
             'current_medications': forms.Textarea(attrs={'rows': 4}),
             'allergies': forms.Textarea(attrs={'rows': 4}),
-            'blood_pressure': forms.TextInput(attrs={'placeholder': 'e.g., 120/80'}),
-            'heart_rate': forms.NumberInput(attrs={'placeholder': 'e.g., 75 bpm'}),
-            'sugar_levels': forms.NumberInput(attrs={'step': '0.01', 'placeholder': 'e.g., 100 mg/dL'}),
         }

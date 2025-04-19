@@ -1,58 +1,24 @@
 {% extends 'elderly/base.html' %}
-{% load static %}  <!-- Add this line to load the static template tag -->
-
+{% load static %}
 {% block content %}
-<div class="health-records-container">
-    <h2>Health Records for {{ elderly_user.first_name }} {{ elderly_user.last_name }}</h2>
-    <div class="health-record-section">
-        <h3>Medical History</h3>
-        <p>{{ health_record.medical_history }}</p>
-    </div>
-    <div class="health-record-section">
-        <h3>Current Medications</h3>
-        <p>{{ health_record.current_medications }}</p>
-    </div>
-    <div class="health-record-section">
-        <h3>Allergies</h3>
-        <p>{{ health_record.allergies }}</p>
-    </div>
-    <div class="health-record-section">
-        <h3>Health Metrics</h3>
-        <p><strong>Blood Pressure:</strong> {{ health_record.blood_pressure }}</p>
-        <p><strong>Heart Rate:</strong> {{ health_record.heart_rate }}</p>
-        <p><strong>Sugar Levels:</strong> {{ health_record.sugar_levels }}</p>
-        <p><strong>Last Updated:</strong> {{ health_record.last_updated }}</p>
-    </div>
-    <!-- Observations Section -->
-    <div class="health-record-section">
-        <h3>Observations</h3>
-        {% if observations %}
-            <ul>
-                {% for observation in observations %}
-                    <li>{{ observation.notes }} ({{ observation.timestamp }})</li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No observations recorded.</p>
-        {% endif %}
-    </div>
-    <!-- Prescriptions Section -->
-    <div class="health-record-section">
-        <h3>Prescriptions</h3>
-        {% if prescriptions %}
-            <ul>
-                {% for prescription in prescriptions %}
-                    <li>
-                        <strong>Medication:</strong> {{ prescription.medication_name }}<br>
-                        <strong>Dosage:</strong> {{ prescription.dosage }}<br>
-                        <strong>Duration:</strong> {{ prescription.duration }}<br>
-                        <strong>Additional Notes:</strong> {{ prescription.additional_notes }}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No prescriptions issued.</p>
-        {% endif %}
-    </div>
+<h1>Health Records for {{ elderly_user.first_name }} {{ elderly_user.last_name }}</h1>
+<div class="health-record-section">
+    <h3>Medical History</h3>
+    <p>{{ health_record.medical_history }}</p>
+</div>
+<div class="health-record-section">
+    <h3>Current Medications</h3>
+    <p>{{ health_record.current_medications }}</p>
+</div>
+<div class="health-record-section">
+    <h3>Allergies</h3>
+    <p>{{ health_record.allergies }}</p>
+</div>
+<div class="health-record-section">
+    <h3>Health Metrics</h3>
+    <p><strong>Blood Pressure:</strong> {{ health_record.blood_pressure }}</p>
+    <p><strong>Heart Rate:</strong> {{ health_record.heart_rate }}</p>
+    <p><strong>Sugar Levels:</strong> {{ health_record.sugar_levels }}</p>
+    <p><strong>Last Updated:</strong> {{ health_record.last_updated }}</p>
 </div>
 {% endblock %}

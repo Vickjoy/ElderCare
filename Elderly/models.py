@@ -69,7 +69,7 @@ class HealthRecord(models.Model):
     medical_history = models.TextField(blank=True, null=True)
     current_medications = models.TextField(blank=True, null=True)
     allergies = models.TextField(blank=True, null=True)
-    blood_pressure = models.CharField(max_length=20, blank=True, null=True)  # Example format: "120/80"
+    blood_pressure = models.CharField(max_length=20, blank=True, null=True)
     heart_rate = models.IntegerField(blank=True, null=True)
     sugar_levels = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     last_updated = models.DateTimeField(auto_now=True)
@@ -79,9 +79,7 @@ class HealthRecord(models.Model):
             # Set default values for new health records
             self.current_medications = "None"
             self.allergies = "None"
-            # Set default medical history based on specializations
             self.medical_history = "Default Medical History:\n"
-            # Correctly access service requests through ElderlyUser
             service_requests = ServiceRequest.objects.filter(elderly_user=self.elderly_user)
             if service_requests.filter(specialization='cardiologist').exists():
                 self.medical_history += "- Cardiologist: No specific issues noted.\n"
@@ -90,7 +88,7 @@ class HealthRecord(models.Model):
             if service_requests.filter(specialization='geriatrician').exists():
                 self.medical_history += "- Geriatrician: No specific issues noted.\n"
         super().save(*args, **kwargs)
-        
+
 class ServiceRequest(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),

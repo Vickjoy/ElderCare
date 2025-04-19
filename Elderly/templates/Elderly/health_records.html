@@ -1,6 +1,5 @@
 {% extends 'elderly/base.html' %}
-{% load static %}  <!-- Add this line to load the static template tag -->
-
+{% load static %}
 {% block content %}
 <div class="health-records-container">
     <h2>Your Health Records</h2>
@@ -29,7 +28,7 @@
             <label for="sugar_levels">Sugar Levels:</label>
             <input type="number" step="0.01" id="sugar_levels" name="sugar_levels" value="{{ health_record.sugar_levels }}">
             <br>
-            <button type="submit" class="btn-submit">Save Health Records</button>
+            <button type="submit">Save Health Records</button>
         </div>
     </form>
 </div>
