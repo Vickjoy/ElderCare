@@ -7,7 +7,7 @@ from .models import (
     HealthRecord, Observation, ServiceRequest, Prescription, Billing
 )
 from .forms import (
-    UserRegistrationForm, UserProfileForm, CaregiverProfileForm, DoctorProfileForm, AdminProfileForm
+    UserRegistrationForm, UserProfileForm, CaregiverProfileForm, DoctorProfileForm, AdminProfileForm, HealthRecordForm
 )
 
 def home(request):
@@ -170,14 +170,26 @@ def emergency_button(request):
 @login_required
 def health_records(request):
     if request.user.role == 'elderly':
-        records = HealthRecord.objects.filter(elderly_user=request.user.elderlyuser)
-        return render(request, 'elderly/health_records.html', {'records': records})
+        elderly_user = request.user.elderlyuser
+        health_record, created = HealthRecord.objects.get_or_create(elderly_user=elderly_user)
+        
+        if request.method == 'POST':
+            form = HealthRecordForm(request.POST, instance=health_record)
+            if form.is_valid():
+                form.save()
+                return redirect('elderly:health_records')
+        else:
+            form = HealthRecordForm(instance=health_record)
+
+            return render(request, 'elderly/health_records.html', {'form': form, 'health_record': health_record})
     elif request.user.role == 'doctor':
         elderly_user_id = request.GET.get('elderly_user_id')
         if elderly_user_id:
             elderly_user = get_object_or_404(ElderlyUser, id=elderly_user_id)
-            records = HealthRecord.objects.filter(elderly_user=elderly_user)
-            return render(request, 'elderly/health_records.html', {'records': records, 'elderly_user': elderly_user})
+            health_record, created = HealthRecord.objects.get_or_create(elderly_user=elderly_user)
+            if created:
+                health_record.save()
+            return render(request, 'elderly/doctor_health_records.html', {'health_record': health_record, 'elderly_user': elderly_user})
     return redirect('elderly:dashboard')
 
 @login_required
@@ -401,11 +413,21 @@ def access_health_records(request, elderly_user_id):
             health_record, created = HealthRecord.objects.get_or_create(elderly_user=elderly_user)
             if created:
                 health_record.save()
-            return render(request, 'elderly/health_records.html', {'health_record': health_record, 'elderly_user': elderly_user})
+            
+            # Fetch related observations and prescriptions
+            service_requests = ServiceRequest.objects.filter(elderly_user=elderly_user, status='accepted')
+            observations = Observation.objects.filter(request__in=service_requests).order_by('-timestamp')
+            prescriptions = Prescription.objects.filter(request__in=service_requests).order_by('-request__timestamp')
+            
+            return render(request, 'elderly/access_health_records.html', {
+                'health_record': health_record,
+                'elderly_user': elderly_user,
+                'observations': observations,
+                'prescriptions': prescriptions,
+            })
         except ElderlyUser.DoesNotExist:
             pass
     return redirect('elderly:dashboard')
-
 @login_required
 def record_observations(request, request_id):
     if request.user.role == 'doctor':

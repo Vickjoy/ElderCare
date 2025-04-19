@@ -1,25 +1,25 @@
 {% extends 'elderly/base.html' %}
-{% load static %}
+{% load static %}  <!-- Add this line to load the static template tag -->
 
 {% block content %}
 <div class="health-records-container">
     <h2>Your Health Records</h2>
-    <div class="health-record-section">
-        <h3>Medical History</h3>
-        <p>{{ health_record.medical_history }}</p>
-    </div>
-    <div class="health-record-section">
-        <h3>Current Medications</h3>
-        <p>{{ health_record.current_medications }}</p>
-    </div>
-    <div class="health-record-section">
-        <h3>Allergies</h3>
-        <p>{{ health_record.allergies }}</p>
-    </div>
-    <div class="health-record-section">
-        <h3>Health Metrics</h3>
-        <form method="post">
-            {% csrf_token %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="health-record-section">
+            <h3>Medical History</h3>
+            <textarea name="medical_history" rows="4">{{ health_record.medical_history }}</textarea>
+        </div>
+        <div class="health-record-section">
+            <h3>Current Medications</h3>
+            <textarea name="current_medications" rows="4">{{ health_record.current_medications }}</textarea>
+        </div>
+        <div class="health-record-section">
+            <h3>Allergies</h3>
+            <textarea name="allergies" rows="4">{{ health_record.allergies }}</textarea>
+        </div>
+        <div class="health-record-section">
+            <h3>Health Metrics</h3>
             <label for="blood_pressure">Blood Pressure:</label>
             <input type="text" id="blood_pressure" name="blood_pressure" value="{{ health_record.blood_pressure }}">
             <br>
@@ -29,8 +29,8 @@
             <label for="sugar_levels">Sugar Levels:</label>
             <input type="number" step="0.01" id="sugar_levels" name="sugar_levels" value="{{ health_record.sugar_levels }}">
             <br>
-            <button type="submit">Save Health Metrics</button>
-        </form>
-    </div>
+            <button type="submit" class="btn-submit">Save Health Records</button>
+        </div>
+    </form>
 </div>
 {% endblock %}

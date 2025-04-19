@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser, ElderlyUser, Caregiver, Doctor, Admin
+from .models import CustomUser, ElderlyUser, Caregiver, Doctor, Admin, HealthRecord
 
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -53,3 +53,24 @@ class AdminProfileForm(forms.ModelForm):
     class Meta:
         model = Admin
         fields = ['permissions']
+
+class HealthRecordForm(forms.ModelForm):
+    class Meta:
+        model = HealthRecord
+        fields = [
+            'medical_history',
+            'current_medications',
+            'allergies',
+            'blood_pressure',
+            'heart_rate',
+            'sugar_levels',
+        ]
+
+    widgets = {
+            'medical_history': forms.Textarea(attrs={'rows': 4}),
+            'current_medications': forms.Textarea(attrs={'rows': 4}),
+            'allergies': forms.Textarea(attrs={'rows': 4}),
+            'blood_pressure': forms.TextInput(attrs={'placeholder': 'e.g., 120/80'}),
+            'heart_rate': forms.NumberInput(attrs={'placeholder': 'e.g., 75 bpm'}),
+            'sugar_levels': forms.NumberInput(attrs={'step': '0.01', 'placeholder': 'e.g., 100 mg/dL'}),
+        }

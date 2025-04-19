@@ -79,7 +79,6 @@ class HealthRecord(models.Model):
             # Set default values for new health records
             self.current_medications = "None"
             self.allergies = "None"
-            
             # Set default medical history based on specializations
             self.medical_history = "Default Medical History:\n"
             # Correctly access service requests through ElderlyUser
@@ -90,9 +89,8 @@ class HealthRecord(models.Model):
                 self.medical_history += "- Neurologist: No specific issues noted.\n"
             if service_requests.filter(specialization='geriatrician').exists():
                 self.medical_history += "- Geriatrician: No specific issues noted.\n"
-        
         super().save(*args, **kwargs)
-
+        
 class ServiceRequest(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),

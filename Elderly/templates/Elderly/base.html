@@ -1,11 +1,15 @@
+{% load static %}  <!-- Add this line to load the static template tag -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elderly Care System</title>
-    {% load static %}
+    <title>Elderly Care</title>
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">  <!-- Include profile.css -->
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">  <!-- Include dashboard.css -->
+    <link rel="stylesheet" href="{% static 'css/health_records.css' %}">  <!-- Include health_records.css -->
 </head>
 <body>
     <header>
@@ -13,14 +17,9 @@
         <nav>
             <ul>
                 <li><a href="{% url 'elderly:home' %}">Home</a></li>
-                {% if user.is_authenticated %}
-                    <li><a href="{% url 'elderly:dashboard' %}">Dashboard</a></li>
-                    <li><a href="{% url 'elderly:profile' %}">Profile</a></li>
-                    <li><a href="{% url 'elderly:logout' %}">Logout</a></li>
-                {% else %}
-                    <li><a href="{% url 'elderly:user_login' %}">Login</a></li>
-                    <li><a href="{% url 'elderly:user_register' %}">Register</a></li>
-                {% endif %}
+                <li><a href="{% url 'elderly:dashboard' %}">Dashboard</a></li>
+                <li><a href="{% url 'elderly:profile' %}">Profile</a></li>
+                <li><a href="{% url 'elderly:logout' %}">Logout</a></li>
             </ul>
         </nav>
     </header>
@@ -31,6 +30,5 @@
     <footer>
         <p>&copy; 2025 Elderly Care System</p>
     </footer>
-    <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>
