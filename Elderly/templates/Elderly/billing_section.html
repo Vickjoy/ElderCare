@@ -1,6 +1,5 @@
 {% extends 'elderly/base.html' %}
 {% load static %}
-
 {% block content %}
 <div class="billing-section-container">
     <h2>Billing Information</h2>
@@ -12,9 +11,13 @@
             {% if bill.payment_status == 'pending' %}
                 <form method="post" action="{% url 'elderly:pay_now' bill.id %}">
                     {% csrf_token %}
-                    <button type="submit">Pay Now</button>
+                    <button type="submit" class="btn-submit">Pay Now</button>
                 </form>
+            {% else %}
+                <p>Payment Status: Paid</p>
             {% endif %}
+            <p>Paybill: {{ bill.paybill }}</p>
+            <p>Account Number: {{ bill.account_number }}</p>
         </li>
         {% endfor %}
     </ul>

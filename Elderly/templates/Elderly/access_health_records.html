@@ -21,4 +21,118 @@
     <p><strong>Sugar Levels:</strong> {{ health_record.sugar_levels }}</p>
     <p><strong>Last Updated:</strong> {{ health_record.last_updated }}</p>
 </div>
+<div class="health-record-section">
+    <h3>Observations</h3>
+    {% if observations %}
+        <ul>
+            {% for observation in observations %}
+                <li>{{ observation.notes }} ({{ observation.timestamp }})</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No observations recorded.</p>
+    {% endif %}
+    {% if request_id %}
+        <form method="post" action="{% url 'elderly:record_observations' request_id %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="notes">Record Observation:</label>
+                <textarea name="notes" id="notes" rows="4"></textarea>
+            </div>
+            <button type="submit" class="btn-submit">Save Observation</button>
+        </form>
+    {% else %}
+        <p>No active service request to record observations.</p>
+    {% endif %}
+</div>
+<div class="health-record-section">
+    <h3>Prescriptions</h3>
+    {% if prescriptions %}
+        <ul>
+            {% for prescription in prescriptions %}
+                <li>
+                    <strong>Medication:</strong> {{ prescription.medication_name }}<br>
+                    <strong>Dosage:</strong> {{ prescription.dosage }}<br>
+                    <strong>Duration:</strong> {{ prescription.duration }}<br>
+                    <strong>Additional Notes:</strong> {{ prescription.additional_notes }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No prescriptions issued.</p>
+    {% endif %}
+    {% if request_id %}
+        <form method="post" action="{% url 'elderly:issue_prescriptions' request_id %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="medication_name">Medication Name:</label>
+                <input type="text" name="medication_name" id="medication_name">
+            </div>
+            <div class="form-group">
+                <label for="dosage">Dosage:</label>
+                <input type="text" name="dosage" id="dosage">
+            </div>
+            <div class="form-group">
+                <label for="duration">Duration:</label>
+                <input type="text" name="duration" id="duration">
+            </div>
+            <div class="form-group">
+                <label for="additional_notes">Additional Notes:</label>
+                <textarea name="additional_notes" id="additional_notes" rows="4"></textarea>
+            </div>
+            <button type="submit" class="btn-submit">Issue Prescription</button>
+        </form>
+    {% else %}
+        <p>No active service request to issue prescriptions.</p>
+    {% endif %}
+</div>
+<div class="health-record-section">
+    <h3>Billing Information</h3>
+    {% if billing %}
+        <p><strong>Service Cost:</strong> ${{ billing.service_cost }}</p>
+        <p><strong>Payment Status:</strong> {{ billing.payment_status }}</p>
+        {% if billing.payment_status == 'pending' %}
+            <form method="post" action="{% url 'elderly:specify_service_cost' request_id %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="service_cost">Service Cost:</label>
+                    <input type="number" step="0.01" name="service_cost" id="service_cost">
+                </div>
+                <div class="form-group">
+                    <label for="paybill">Paybill:</label>
+                    <input type="text" name="paybill" id="paybill" placeholder="Paybill Number">
+                </div>
+                <div class="form-group">
+                    <label for="account_number">Account Number:</label>
+                    <input type="text" name="account_number" id="account_number" placeholder="Account Number">
+                </div>
+                <button type="submit" class="btn-submit">Specify Service Cost</button>
+            </form>
+        {% else %}
+            <p>Payment Status: Paid</p>
+        {% endif %}
+    {% else %}
+        <p>No billing information specified.</p>
+        {% if request_id %}
+            <form method="post" action="{% url 'elderly:specify_service_cost' request_id %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="service_cost">Service Cost:</label>
+                    <input type="number" step="0.01" name="service_cost" id="service_cost">
+                </div>
+                <div class="form-group">
+                    <label for="paybill">Paybill:</label>
+                    <input type="text" name="paybill" id="paybill" placeholder="Paybill Number">
+                </div>
+                <div class="form-group">
+                    <label for="account_number">Account Number:</label>
+                    <input type="text" name="account_number" id="account_number" placeholder="Account Number">
+                </div>
+                <button type="submit" class="btn-submit">Specify Service Cost</button>
+            </form>
+        {% else %}
+            <p>No active service request to specify service cost.</p>
+        {% endif %}
+    {% endif %}
+</div>
 {% endblock %}

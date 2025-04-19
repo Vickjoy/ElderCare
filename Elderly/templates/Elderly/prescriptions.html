@@ -1,6 +1,5 @@
 {% extends 'elderly/base.html' %}
 {% load static %}
-
 {% block content %}
 <div class="prescriptions-container">
     <h2>Your Prescriptions</h2>
@@ -14,7 +13,7 @@
             {% if prescription.request.status != 'completed' %}
                 <form method="post" action="{% url 'elderly:mark_prescription_completed' prescription.id %}">
                     {% csrf_token %}
-                    <button type="submit">Mark as Completed</button>
+                    <button type="submit" class="btn-submit">Mark as Completed</button>
                 </form>
             {% endif %}
         </li>

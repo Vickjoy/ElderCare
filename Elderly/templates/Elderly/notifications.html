@@ -1,6 +1,5 @@
 {% extends 'elderly/base.html' %}
 {% load static %}
-
 {% block content %}
 <div class="notifications-container">
     <h2>Notifications</h2>
@@ -10,6 +9,12 @@
             <strong>{{ notification.message }}</strong><br>
             <span>Status: {{ notification.status }}</span><br>
             <span>Timestamp: {{ notification.timestamp }}</span><br>
+            {% if notification.status == 'sent' %}
+                <form method="post" action="{% url 'elderly:mark_medication_taken' notification.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-submit">Mark as Read</button>
+                </form>
+            {% endif %}
         </li>
         {% endfor %}
     </ul>

@@ -1,4 +1,3 @@
-# views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -7,7 +6,8 @@ from .models import (
     HealthRecord, Observation, ServiceRequest, Prescription, Billing
 )
 from .forms import (
-    UserRegistrationForm, UserProfileForm, CaregiverProfileForm, DoctorProfileForm, AdminProfileForm, HealthRecordForm
+    UserRegistrationForm, UserProfileForm, CaregiverProfileForm, DoctorProfileForm, AdminProfileForm,
+    HealthRecordForm, ObservationForm, PrescriptionForm, BillingForm
 )
 
 def home(request):
@@ -167,13 +167,10 @@ def emergency_button(request):
         return redirect('elderly:dashboard')
     return redirect('elderly:dashboard')
 
-
 @login_required
 def health_records(request):
     if request.user.role == 'elderly':
-        elderly_user = request.user.elderlyuser
-        health_record, created = HealthRecord.objects.get_or_create(elderly_user=elderly_user)
-        
+        health_record, created = HealthRecord.objects.get_or_create(elderly_user=request.user.elderlyuser)
         if request.method == 'POST':
             form = HealthRecordForm(request.POST, instance=health_record)
             if form.is_valid():
@@ -181,7 +178,6 @@ def health_records(request):
                 return redirect('elderly:health_records')
         else:
             form = HealthRecordForm(instance=health_record)
-        
         return render(request, 'elderly/health_records.html', {'form': form, 'health_record': health_record})
     elif request.user.role == 'doctor':
         elderly_user_id = request.GET.get('elderly_user_id')
@@ -190,9 +186,34 @@ def health_records(request):
             health_record, created = HealthRecord.objects.get_or_create(elderly_user=elderly_user)
             if created:
                 health_record.save()
+            
+            # Fetch the current accepted service request for the elderly user
+            service_request = ServiceRequest.objects.filter(
+                elderly_user=elderly_user,
+                status='accepted'
+            ).first()
+            
+            if not service_request:
+                return render(request, 'elderly/access_health_records.html', {
+                    'health_record': health_record,
+                    'elderly_user': elderly_user,
+                    'observations': [],
+                    'prescriptions': [],
+                    'billing': None,
+                    'request_id': None,  # Pass None if no request is found
+                })
+            
+            observations = Observation.objects.filter(request=service_request).order_by('-timestamp')
+            prescriptions = Prescription.objects.filter(request=service_request).order_by('-request__timestamp')
+            billing = Billing.objects.filter(request=service_request).order_by('-timestamp').first()
+            
             return render(request, 'elderly/access_health_records.html', {
                 'health_record': health_record,
                 'elderly_user': elderly_user,
+                'observations': observations,
+                'prescriptions': prescriptions,
+                'billing': billing,
+                'request_id': service_request.id,  # Pass the request_id
             })
     return redirect('elderly:dashboard')
 
@@ -413,34 +434,61 @@ def reject_request(request, request_id):
 def access_health_records(request, elderly_user_id):
     if request.user.role == 'doctor':
         try:
-            elderly_user = ElderlyUser.objects.get(id=elderly_user_id)
+            elderly_user = get_object_or_404(ElderlyUser, id=elderly_user_id)
             health_record, created = HealthRecord.objects.get_or_create(elderly_user=elderly_user)
             if created:
                 health_record.save()
             
-            # Fetch related observations and prescriptions
-            service_requests = ServiceRequest.objects.filter(elderly_user=elderly_user, status='accepted')
-            observations = Observation.objects.filter(request__in=service_requests).order_by('-timestamp')
-            prescriptions = Prescription.objects.filter(request__in=service_requests).order_by('-request__timestamp')
+            # Fetch the current accepted service request for the elderly user
+            service_request = ServiceRequest.objects.filter(
+                elderly_user=elderly_user,
+                status='accepted'
+            ).first()
+            
+            if not service_request:
+                return render(request, 'elderly/access_health_records.html', {
+                    'health_record': health_record,
+                    'elderly_user': elderly_user,
+                    'observations': [],
+                    'prescriptions': [],
+                    'billing': None,
+                    'request_id': None,  # Pass None if no request is found
+                })
+            
+            observations = Observation.objects.filter(request=service_request).order_by('-timestamp')
+            prescriptions = Prescription.objects.filter(request=service_request).order_by('-request__timestamp')
+            billing = Billing.objects.filter(request=service_request).order_by('-timestamp').first()
             
             return render(request, 'elderly/access_health_records.html', {
                 'health_record': health_record,
                 'elderly_user': elderly_user,
                 'observations': observations,
                 'prescriptions': prescriptions,
+                'billing': billing,
+                'request_id': service_request.id,  # Pass the request_id
             })
         except ElderlyUser.DoesNotExist:
             pass
     return redirect('elderly:dashboard')
+
 @login_required
 def record_observations(request, request_id):
     if request.user.role == 'doctor':
         try:
-            service_request = ServiceRequest.objects.get(id=request_id, status='accepted')
+            service_request = get_object_or_404(ServiceRequest, id=request_id, status='accepted')
             if request.method == 'POST':
-                notes = request.POST.get('notes')
-                Observation.objects.create(request=service_request, notes=notes)
-                return redirect('elderly:access_health_records', elderly_user_id=service_request.elderly_user.id)
+                form = ObservationForm(request.POST)
+                if form.is_valid():
+                    observation = form.save(commit=False)
+                    observation.request = service_request
+                    observation.save()
+                    # Create a feedback notification for the elderly user
+                    FeedbackNotification.objects.create(
+                        notification=service_request.elderly_user.emergencynotification_set.first(),  # Assuming one-to-one relation
+                        message=form.cleaned_data['notes'],
+                        status='sent'
+                    )
+                    return redirect('elderly:access_health_records', elderly_user_id=service_request.elderly_user.id)
         except ServiceRequest.DoesNotExist:
             pass
     return redirect('elderly:dashboard')
@@ -449,20 +497,14 @@ def record_observations(request, request_id):
 def issue_prescriptions(request, request_id):
     if request.user.role == 'doctor':
         try:
-            service_request = ServiceRequest.objects.get(id=request_id, status='accepted')
+            service_request = get_object_or_404(ServiceRequest, id=request_id, status='accepted')
             if request.method == 'POST':
-                medication_name = request.POST.get('medication_name')
-                dosage = request.POST.get('dosage')
-                duration = request.POST.get('duration')
-                additional_notes = request.POST.get('additional_notes')
-                Prescription.objects.create(
-                    request=service_request,
-                    medication_name=medication_name,
-                    dosage=dosage,
-                    duration=duration,
-                    additional_notes=additional_notes
-                )
-                return redirect('elderly:access_health_records', elderly_user_id=service_request.elderly_user.id)
+                form = PrescriptionForm(request.POST)
+                if form.is_valid():
+                    prescription = form.save(commit=False)
+                    prescription.request = service_request
+                    prescription.save()
+                    return redirect('elderly:access_health_records', elderly_user_id=service_request.elderly_user.id)
         except ServiceRequest.DoesNotExist:
             pass
     return redirect('elderly:dashboard')
@@ -471,15 +513,14 @@ def issue_prescriptions(request, request_id):
 def specify_service_cost(request, request_id):
     if request.user.role == 'doctor':
         try:
-            service_request = ServiceRequest.objects.get(id=request_id, status='accepted')
+            service_request = get_object_or_404(ServiceRequest, id=request_id, status='accepted')
             if request.method == 'POST':
-                service_cost = request.POST.get('service_cost')
-                Billing.objects.create(
-                    request=service_request,
-                    service_cost=service_cost,
-                    payment_status='pending'
-                )
-                return redirect('elderly:access_health_records', elderly_user_id=service_request.elderly_user.id)
+                form = BillingForm(request.POST)
+                if form.is_valid():
+                    billing = form.save(commit=False)
+                    billing.request = service_request
+                    billing.save()
+                    return redirect('elderly:access_health_records', elderly_user_id=service_request.elderly_user.id)
         except ServiceRequest.DoesNotExist:
             pass
     return redirect('elderly:dashboard')
@@ -488,7 +529,7 @@ def specify_service_cost(request, request_id):
 def complete_session(request, request_id):
     if request.user.role == 'doctor':
         try:
-            service_request = ServiceRequest.objects.get(id=request_id, status='accepted')
+            service_request = get_object_or_404(ServiceRequest, id=request_id, status='accepted')
             service_request.status = 'completed'
             service_request.save()
             return redirect('elderly:view_requests')
@@ -507,7 +548,7 @@ def verify_doctor_list(request):
 def verify_doctor(request, doctor_id):
     if request.user.role == 'admin':
         try:
-            doctor = Doctor.objects.get(id=doctor_id)
+            doctor = get_object_or_404(Doctor, id=doctor_id)
             if request.method == 'POST':
                 action = request.POST.get('action')
                 reason = request.POST.get('reason', '')
@@ -562,7 +603,7 @@ def system_settings(request):
 def mark_prescription_completed(request, prescription_id):
     if request.user.role == 'caregiver':
         try:
-            prescription = Prescription.objects.get(id=prescription_id)
+            prescription = get_object_or_404(Prescription, id=prescription_id)
             prescription.request.status = 'completed'
             prescription.request.save()
             return redirect('elderly:medication_management')
@@ -574,7 +615,7 @@ def mark_prescription_completed(request, prescription_id):
 def send_medication_reminder(request, elderly_user_id):
     if request.user.role == 'caregiver':
         try:
-            elderly_user = ElderlyUser.objects.get(id=elderly_user_id)
+            elderly_user = get_object_or_404(ElderlyUser, id=elderly_user_id)
             # Logic to send medication reminder
             # Placeholder for now
             return redirect('elderly:medication_management')
@@ -586,7 +627,7 @@ def send_medication_reminder(request, elderly_user_id):
 def schedule_appointment(request, request_id):
     if request.user.role == 'caregiver':
         try:
-            service_request = ServiceRequest.objects.get(id=request_id, status='pending')
+            service_request = get_object_or_404(ServiceRequest, id=request_id, status='pending')
             if request.method == 'POST':
                 # Logic to schedule appointment
                 # Placeholder for now
@@ -595,7 +636,7 @@ def schedule_appointment(request, request_id):
                 return redirect('elderly:appointment_scheduling')
         except ServiceRequest.DoesNotExist:
             pass
-    return redirect('elderly:dashboard')
+    return redirect('elderly:appointment_scheduling')
 
 @login_required
 def assign_caregiver_to_elderly(request):
@@ -604,8 +645,8 @@ def assign_caregiver_to_elderly(request):
             caregiver_id = request.POST.get('caregiver_id')
             elderly_user_id = request.POST.get('elderly_user_id')
             try:
-                caregiver = Caregiver.objects.get(user_id=caregiver_id)
-                elderly_user = ElderlyUser.objects.get(id=elderly_user_id)
+                caregiver = get_object_or_404(Caregiver, user_id=caregiver_id)
+                elderly_user = get_object_or_404(ElderlyUser, id=elderly_user_id)
                 if caregiver.assigned_users:
                     caregiver.assigned_users.append(elderly_user_id)
                 else:
@@ -626,67 +667,79 @@ def assign_caregiver_to_elderly(request):
 def deactivate_user(request, user_id):
     if request.user.role == 'admin':
         try:
-            user = CustomUser.objects.get(id=user_id)
+            user = get_object_or_404(CustomUser, id=user_id)
             user.is_active = False
             user.save()
             return redirect('elderly:manage_users')
         except CustomUser.DoesNotExist:
             pass
-    return redirect('elderly:dashboard')
+    return redirect('elderly:manage_users')
 
 @login_required
 def pay_now(request, bill_id):
     if request.user.role == 'elderly':
         try:
-            bill = Billing.objects.get(id=bill_id, request__elderly_user=request.user.elderlyuser)
+            bill = get_object_or_404(Billing, id=bill_id, request__elderly_user=request.user.elderlyuser)
             if request.method == 'POST':
                 bill.payment_status = 'paid'
                 bill.save()
                 return redirect('elderly:billing_section')
         except Billing.DoesNotExist:
             pass
-    return redirect('elderly:dashboard')
+    return redirect('elderly:billing_section')
 
 @login_required
 def mark_medication_taken(request, notification_id):
     if request.user.role == 'elderly':
         try:
-            notification = FeedbackNotification.objects.get(id=notification_id, notification__elderly_user=request.user.elderlyuser)
+            notification = get_object_or_404(FeedbackNotification, id=notification_id, notification__elderly_user=request.user.elderlyuser)
             if request.method == 'POST':
                 notification.status = 'read'
                 notification.save()
                 return redirect('elderly:medication_reminders')
         except FeedbackNotification.DoesNotExist:
             pass
-    return redirect('elderly:dashboard')
+    return redirect('elderly:medication_reminders')
 
 @login_required
 def doctor_dashboard(request):
-    print(f"User is authenticated: {request.user.is_authenticated}")
-    print(f"User role: {request.user.role}")
     if request.user.role == 'doctor':
         if not hasattr(request.user, 'doctor') or not request.user.doctor.first_name:
-            print("Doctor object does not exist or first name is missing.")
             return redirect('elderly:profile')
         if not request.user.doctor.verified_status:
-            print("Doctor is not verified.")
             return render(request, 'elderly/unverified_doctor.html')
         # Get the current accepted request
         current_request = ServiceRequest.objects.filter(doctor=request.user.doctor, status='accepted').first()
-        print(f"Current request: {current_request}")
         if current_request:
             elderly_user = current_request.elderly_user
-            print(f"Elderly user: {elderly_user}")
             health_record, created = HealthRecord.objects.get_or_create(elderly_user=elderly_user)
             if created:
                 health_record.save()
-            print(f"Health record: {health_record}")
+            observations = Observation.objects.filter(request=current_request).order_by('-timestamp')
+            prescriptions = Prescription.objects.filter(request=current_request).order_by('-request__timestamp')
+            billing = Billing.objects.filter(request=current_request).order_by('-timestamp').first()
             return render(request, 'elderly/doctor_dashboard.html', {
                 'current_request': current_request,
                 'health_record': health_record,
-                'elderly_user': elderly_user
+                'elderly_user': elderly_user,
+                'observations': observations,
+                'prescriptions': prescriptions,
+                'billing': billing,
             })
-        print("No current accepted request.")
         return render(request, 'elderly/doctor_dashboard.html', {'current_request': None})
-    print("User is not a doctor.")
-    return redirect('elderly:user_login')  # Redirect to login if user is not a doctor
+    return redirect('elderly:user_login')
+
+@login_required
+def pay_now_page(request, bill_id):
+    if request.user.role == 'elderly':
+        try:
+            bill = get_object_or_404(Billing, id=bill_id, request__elderly_user=request.user.elderlyuser)
+            if request.method == 'POST':
+                # Simulate payment processing
+                bill.payment_status = 'paid'
+                bill.save()
+                return redirect('elderly:billing_section')
+            return render(request, 'elderly/pay_now.html', {'bill': bill})
+        except Billing.DoesNotExist:
+            pass
+    return redirect('elderly:billing_section')

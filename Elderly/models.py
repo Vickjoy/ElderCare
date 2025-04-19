@@ -62,14 +62,12 @@ class Admin(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     permissions = models.JSONField(default=dict, blank=True, null=True)  # Initialize to an empty dictionary
 
-
-            
 class HealthRecord(models.Model):
     elderly_user = models.OneToOneField(ElderlyUser, on_delete=models.CASCADE)
     medical_history = models.TextField(blank=True, null=True)
     current_medications = models.TextField(blank=True, null=True)
     allergies = models.TextField(blank=True, null=True)
-    blood_pressure = models.CharField(max_length=20, blank=True, null=True)
+    blood_pressure = models.CharField(max_length=20, blank=True, null=True)  # Example format: "120/80"
     heart_rate = models.IntegerField(blank=True, null=True)
     sugar_levels = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     last_updated = models.DateTimeField(auto_now=True)
@@ -124,6 +122,8 @@ class Billing(models.Model):
     service_cost = models.DecimalField(max_digits=10, decimal_places=2)
     payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES)
     timestamp = models.DateTimeField(auto_now_add=True)
+    paybill = models.CharField(max_length=20, blank=True, null=True)
+    account_number = models.CharField(max_length=20, blank=True, null=True)
 
 class EmergencyNotification(models.Model):
     STATUS_CHOICES = (
