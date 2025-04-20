@@ -1,15 +1,20 @@
 {% extends 'elderly/base.html' %}
-
+{% load static %}
 {% block content %}
-<h2>Service Booking</h2>
-<form action="" method="post">
-    {% csrf_token %}
-    <label for="specialization">Specialization:</label>
-    <select name="specialization" id="specialization">
-        <option value="cardiologist">Cardiologist</option>
-        <option value="neurologist">Neurologist</option>
-        <option value="geriatrician">Geriatrician</option>
-    </select>
-    <button type="submit">Request Assistance</button>
-</form>
+<div class="service-booking-container">
+    <h2>Book a Service</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="specialization">Specialization:</label>
+            <select name="specialization" id="specialization">
+                <option value="cardiologist">Cardiologist</option>
+                <option value="neurologist">Neurologist</option>
+                <option value="geriatrician">Geriatrician</option>
+                <!-- Add more specializations as needed -->
+            </select>
+        </div>
+        <button type="submit">Book Service</button>
+    </form>
+</div>
 {% endblock %}

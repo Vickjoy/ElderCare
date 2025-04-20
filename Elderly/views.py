@@ -150,7 +150,11 @@ def profile(request):
 def service_booking(request):
     if request.method == 'POST':
         specialization = request.POST.get('specialization')
-        ServiceRequest.objects.create(elderly_user=request.user.elderlyuser, specialization=specialization, status='pending')
+        ServiceRequest.objects.create(
+            elderly_user=request.user.elderlyuser,
+            specialization=specialization,
+            status='pending'
+        )
         return redirect('elderly:dashboard')
     return render(request, 'elderly/service_booking.html')
 
@@ -202,6 +206,12 @@ def health_records(request):
                     'billing': None,
                     'request_id': None,  # Pass None if no request is found
                 })
+            
+            if request.method == 'POST':
+                form = HealthRecordForm(request.POST, instance=health_record)
+                if form.is_valid():
+                    form.save()
+                    return redirect('elderly:access_health_records', elderly_user_id=elderly_user_id)
             
             observations = Observation.objects.filter(request=service_request).order_by('-timestamp')
             prescriptions = Prescription.objects.filter(request=service_request).order_by('-request__timestamp')
@@ -409,8 +419,8 @@ def accept_request(request, request_id):
             service_request.status = 'accepted'
             service_request.doctor = request.user.doctor
             service_request.save()
-            # Redirect to doctor dashboard
-            return redirect('elderly:doctor_dashboard')
+            # Redirect to access health records page
+            return redirect('elderly:access_health_records', elderly_user_id=service_request.elderly_user.id)
         except ServiceRequest.DoesNotExist:
             pass
     return redirect('elderly:dashboard')
@@ -454,6 +464,12 @@ def access_health_records(request, elderly_user_id):
                     'billing': None,
                     'request_id': None,  # Pass None if no request is found
                 })
+            
+            if request.method == 'POST':
+                form = HealthRecordForm(request.POST, instance=health_record)
+                if form.is_valid():
+                    form.save()
+                    return redirect('elderly:access_health_records', elderly_user_id=elderly_user_id)
             
             observations = Observation.objects.filter(request=service_request).order_by('-timestamp')
             prescriptions = Prescription.objects.filter(request=service_request).order_by('-request__timestamp')
@@ -529,7 +545,7 @@ def specify_service_cost(request, request_id):
 def complete_session(request, request_id):
     if request.user.role == 'doctor':
         try:
-            service_request = get_object_or_404(ServiceRequest, id=request_id, status='accepted')
+            service_request = ServiceRequest.objects.get(id=request_id, status='accepted')
             service_request.status = 'completed'
             service_request.save()
             return redirect('elderly:view_requests')
@@ -708,8 +724,10 @@ def doctor_dashboard(request):
             return redirect('elderly:profile')
         if not request.user.doctor.verified_status:
             return render(request, 'elderly/unverified_doctor.html')
+        
         # Get the current accepted request
         current_request = ServiceRequest.objects.filter(doctor=request.user.doctor, status='accepted').first()
+        
         if current_request:
             elderly_user = current_request.elderly_user
             health_record, created = HealthRecord.objects.get_or_create(elderly_user=elderly_user)
@@ -726,7 +744,12 @@ def doctor_dashboard(request):
                 'prescriptions': prescriptions,
                 'billing': billing,
             })
-        return render(request, 'elderly/doctor_dashboard.html', {'current_request': None})
+        else:
+            # Fetch pending requests
+            pending_requests = ServiceRequest.objects.filter(status='pending')
+            return render(request, 'elderly/doctor_dashboard.html', {
+                'pending_requests': pending_requests,
+            })
     return redirect('elderly:user_login')
 
 @login_required
@@ -740,6 +763,30 @@ def pay_now_page(request, bill_id):
                 bill.save()
                 return redirect('elderly:billing_section')
             return render(request, 'elderly/pay_now.html', {'bill': bill})
+        except Billing.DoesNotExist:
+            pass
+    return redirect('elderly:billing_section')
+
+@login_required
+def pay_now(request, bill_id):
+    if request.user.role == 'elderly':
+        try:
+            bill = get_object_or_404(Billing, id=bill_id, request__elderly_user=request.user.elderlyuser)
+            return render(request, 'elderly/pay_now_confirmation.html', {'bill': bill})
+        except Billing.DoesNotExist:
+            pass
+    return redirect('elderly:billing_section')
+
+@login_required
+def confirm_payment(request, bill_id):
+    if request.user.role == 'elderly':
+        try:
+            bill = get_object_or_404(Billing, id=bill_id, request__elderly_user=request.user.elderlyuser)
+            if request.method == 'POST':
+                # Simulate payment processing
+                bill.payment_status = 'paid'
+                bill.save()
+                return redirect('elderly:billing_section')
         except Billing.DoesNotExist:
             pass
     return redirect('elderly:billing_section')

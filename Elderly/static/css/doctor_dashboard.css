@@ -1,0 +1,240 @@
+/* Doctor Dashboard CSS */
+.doctor-dashboard-container {
+    width: 80%;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.request-details {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.request-details h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+.request-details p {
+    margin: 5px 0;
+    color: #555;
+}
+
+.pending-requests {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.pending-requests h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+.pending-requests ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.pending-requests li {
+    background-color: #e9ecef;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.pending-requests li strong {
+    color: #333;
+}
+
+.pending-requests li form {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.health-record-section {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.health-record-section h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+.health-record-section textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+.health-record-section input[type="text"],
+.health-record-section input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.observations-section {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.observations-section h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+.observations-section ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.observations-section li {
+    background-color: #e9ecef;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.observations-section li strong {
+    color: #333;
+}
+
+.observations-section form {
+    margin-top: 10px;
+}
+
+.prescriptions-section {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.prescriptions-section h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+.prescriptions-section ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.prescriptions-section li {
+    background-color: #e9ecef;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.prescriptions-section li strong {
+    color: #333;
+}
+
+.prescriptions-section form {
+    margin-top: 10px;
+}
+
+.billing-section {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.billing-section h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+.billing-section p {
+    margin: 5px 0;
+    color: #555;
+}
+
+.billing-section form {
+    margin-top: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btn-submit {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.btn-submit:hover {
+    background-color: #0056b3;
+}
+
+@media (max-width: 768px) {
+    .doctor-dashboard-container {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group textarea {
+        width: 100%;
+    }
+
+    .pending-requests li,
+    .health-record-section,
+    .observations-section,
+    .prescriptions-section,
+    .billing-section {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+}

@@ -1,24 +1,21 @@
 {% extends 'elderly/base.html' %}
 {% load static %}
-
 {% block content %}
-<div class="dashboard-container">
-    <h2>Pending Assistance Requests</h2>
-    {% if pending_requests %}
-        <ul>
-            {% for request in pending_requests %}
-            <li>
-                <strong>{{ request.elderly_user.first_name }} {{ request.elderly_user.last_name }}</strong><br>
-                <span>Location: {{ request.elderly_user.address }}</span><br>
-                <span>Specialization: {{ request.specialization }}</span><br>
-                <span>Timestamp: {{ request.timestamp }}</span><br>
-                <a href="{% url 'elderly:accept_request' request.id %}">Accept</a>
-                <a href="{% url 'elderly:reject_request' request.id %}">Reject</a>
-            </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No pending requests available.</p>
-    {% endif %}
-</div>
+<h1>Pending Requests</h1>
+<ul>
+    {% for request in pending_requests %}
+        <li>
+            <strong>Elderly User:</strong> {{ request.elderly_user.first_name }} {{ request.elderly_user.last_name }}<br>
+            <strong>Specialization:</strong> {{ request.specialization }}<br>
+            <strong>Status:</strong> {{ request.status }}<br>
+            <strong>Timestamp:</strong> {{ request.timestamp }}<br>
+            <form method="post" action="{% url 'elderly:accept_request' request.id %}">
+                {% csrf_token %}
+                <button type="submit">Accept Request</button>
+            </form>
+        </li>
+    {% empty %}
+        <p>No pending requests.</p>
+    {% endfor %}
+</ul>
 {% endblock %}

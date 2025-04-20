@@ -6,8 +6,8 @@
     <ul>
         {% for bill in bills %}
         <li>
-            <strong>Service Cost: ${{ bill.service_cost }}</strong><br>
-            <span>Payment Status: {{ bill.payment_status }}</span><br>
+            <strong>Service Cost:</strong> ${{ bill.service_cost }}</p>
+            <p><strong>Payment Status:</strong> {{ bill.payment_status }}</p>
             {% if bill.payment_status == 'pending' %}
                 <form method="post" action="{% url 'elderly:pay_now' bill.id %}">
                     {% csrf_token %}
