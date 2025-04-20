@@ -493,19 +493,41 @@ def record_observations(request, request_id):
     if request.user.role == 'doctor':
         try:
             service_request = get_object_or_404(ServiceRequest, id=request_id, status='accepted')
+            elderly_user = service_request.elderly_user
+            
+            # Fetch the most recent EmergencyNotification for the elderly user
+            emergency_notification = EmergencyNotification.objects.filter(
+                elderly_user=elderly_user,
+                status='sent'
+            ).order_by('-timestamp').first()
+            
+            if not emergency_notification:
+                # Create a new EmergencyNotification if none exists
+                caregiver = Caregiver.objects.first()  # Simplified for demonstration
+                if caregiver:
+                    emergency_notification = EmergencyNotification.objects.create(
+                        elderly_user=elderly_user,
+                        caregiver=caregiver,
+                        status='sent'
+                    )
+                else:
+                    return redirect('elderly:access_health_records', elderly_user_id=elderly_user.id)
+            
             if request.method == 'POST':
                 form = ObservationForm(request.POST)
                 if form.is_valid():
                     observation = form.save(commit=False)
                     observation.request = service_request
                     observation.save()
+                    
                     # Create a feedback notification for the elderly user
                     FeedbackNotification.objects.create(
-                        notification=service_request.elderly_user.emergencynotification_set.first(),  # Assuming one-to-one relation
+                        notification=emergency_notification,
                         message=form.cleaned_data['notes'],
                         status='sent'
                     )
-                    return redirect('elderly:access_health_records', elderly_user_id=service_request.elderly_user.id)
+                    
+                    return redirect('elderly:access_health_records', elderly_user_id=elderly_user.id)
         except ServiceRequest.DoesNotExist:
             pass
     return redirect('elderly:dashboard')

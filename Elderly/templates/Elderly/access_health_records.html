@@ -6,6 +6,13 @@
 {% block content %}
 <div class="access-health-records-container">
     <h1>Health Records for {{ elderly_user.first_name }} {{ elderly_user.last_name }}</h1>
+    <div class="user-details">
+        <p><strong>First Name:</strong> {{ elderly_user.first_name }}</p>
+        <p><strong>Last Name:</strong> {{ elderly_user.last_name }}</p>
+        <p><strong>Gender:</strong> {{ elderly_user.gender }}</p>
+        <p><strong>Address:</strong> {{ elderly_user.address }}</p>
+        <p><strong>Emergency Contact:</strong> {{ elderly_user.emergency_contact }}</p>
+    </div>
     <div class="health-record-section">
         <h2>Health Records</h2>
         <form method="post">
