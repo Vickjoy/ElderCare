@@ -1,0 +1,19 @@
+{% extends 'elderly/base.html' %}
+{% load static %}
+{% block content %}
+<div class="elderly-user-details-container">
+    <h1>Elderly User Details</h1>
+    <div class="user-info">
+        <p><strong>First Name:</strong> {{ elderly_user.first_name }}</p>
+        <p><strong>Last Name:</strong> {{ elderly_user.last_name }}</p>
+        <p><strong>Gender:</strong> {{ elderly_user.gender }}</p>
+        <p><strong>Address:</strong> {{ elderly_user.address }}</p>
+        <p><strong>Emergency Contact:</strong> {{ elderly_user.emergency_contact }}</p>
+    </div>
+    <div class="actions">
+        <form method="get" action="{% url 'elderly:access_health_records' elderly_user.id %}">
+            <button type="submit" class="btn-submit">Access Health Records</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

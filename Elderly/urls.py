@@ -32,6 +32,7 @@ urlpatterns = [
     path('view-requests/', views.view_requests, name='view_requests'),
     path('accept-request/<int:request_id>/', views.accept_request, name='accept_request'),
     path('reject-request/<int:request_id>/', views.reject_request, name='reject_request'),
+    path('elderly-user-details/<int:elderly_user_id>/', views.elderly_user_details, name='elderly_user_details'),
     path('access-health-records/<int:elderly_user_id>/', views.access_health_records, name='access_health_records'),
     path('record-observations/<int:request_id>/', views.record_observations, name='record_observations'),
     path('issue-prescriptions/<int:request_id>/', views.issue_prescriptions, name='issue_prescriptions'),

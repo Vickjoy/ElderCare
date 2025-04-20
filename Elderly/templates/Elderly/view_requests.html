@@ -1,21 +1,30 @@
 {% extends 'elderly/base.html' %}
 {% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/doctor_dashboard_view_requests.css' %}">
+{% endblock %}
 {% block content %}
-<h1>Pending Requests</h1>
-<ul>
-    {% for request in pending_requests %}
-        <li>
-            <strong>Elderly User:</strong> {{ request.elderly_user.first_name }} {{ request.elderly_user.last_name }}<br>
-            <strong>Specialization:</strong> {{ request.specialization }}<br>
-            <strong>Status:</strong> {{ request.status }}<br>
-            <strong>Timestamp:</strong> {{ request.timestamp }}<br>
-            <form method="post" action="{% url 'elderly:accept_request' request.id %}">
-                {% csrf_token %}
-                <button type="submit">Accept Request</button>
-            </form>
-        </li>
-    {% empty %}
+<div class="pending-requests-container">
+    <h1>Pending Requests</h1>
+    {% if pending_requests %}
+        <ul>
+            {% for request in pending_requests %}
+                <li>
+                    <strong>Elderly User:</strong> {{ request.elderly_user.first_name }} {{ request.elderly_user.last_name }}<br>
+                    <strong>Specialization:</strong> {{ request.specialization }}<br>
+                    <strong>Status:</strong> {{ request.status }}<br>
+                    <strong>Timestamp:</strong> {{ request.timestamp }}<br>
+                    <div class="form-group">
+                        <form method="post" action="{% url 'elderly:accept_request' request.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-submit">Accept Request</button>
+                        </form>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
         <p>No pending requests.</p>
-    {% endfor %}
-</ul>
+    {% endif %}
+</div>
 {% endblock %}

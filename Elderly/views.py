@@ -194,7 +194,8 @@ def health_records(request):
             # Fetch the current accepted service request for the elderly user
             service_request = ServiceRequest.objects.filter(
                 elderly_user=elderly_user,
-                status='accepted'
+                status='accepted',
+                doctor=request.user.doctor
             ).first()
             
             if not service_request:
@@ -407,7 +408,7 @@ def view_requests(request):
             return redirect('elderly:profile')
         if not request.user.doctor.verified_status:
             return render(request, 'elderly/unverified_doctor.html')
-        pending_requests = ServiceRequest.objects.filter(status='pending')
+        pending_requests = ServiceRequest.objects.filter(status='pending', specialization=request.user.doctor.specialization)
         return render(request, 'elderly/view_requests.html', {'pending_requests': pending_requests})
     return redirect('elderly:dashboard')
 
@@ -416,11 +417,17 @@ def accept_request(request, request_id):
     if request.user.role == 'doctor':
         try:
             service_request = ServiceRequest.objects.get(id=request_id, status='pending')
-            service_request.status = 'accepted'
-            service_request.doctor = request.user.doctor
-            service_request.save()
-            # Redirect to access health records page
-            return redirect('elderly:access_health_records', elderly_user_id=service_request.elderly_user.id)
+            if service_request.specialization == request.user.doctor.specialization:
+                service_request.status = 'accepted'
+                service_request.doctor = request.user.doctor
+                service_request.save()
+                # Redirect to elderly user details page
+                return redirect('elderly:elderly_user_details', elderly_user_id=service_request.elderly_user.id)
+            else:
+                return render(request, 'elderly/view_requests.html', {
+                    'pending_requests': ServiceRequest.objects.filter(status='pending', specialization=request.user.doctor.specialization),
+                    'error': 'This request is not for your specialization.'
+                })
         except ServiceRequest.DoesNotExist:
             pass
     return redirect('elderly:dashboard')
@@ -452,18 +459,12 @@ def access_health_records(request, elderly_user_id):
             # Fetch the current accepted service request for the elderly user
             service_request = ServiceRequest.objects.filter(
                 elderly_user=elderly_user,
-                status='accepted'
+                status='accepted',
+                doctor=request.user.doctor
             ).first()
             
             if not service_request:
-                return render(request, 'elderly/access_health_records.html', {
-                    'health_record': health_record,
-                    'elderly_user': elderly_user,
-                    'observations': [],
-                    'prescriptions': [],
-                    'billing': None,
-                    'request_id': None,  # Pass None if no request is found
-                })
+                return redirect('elderly:elderly_user_details', elderly_user_id=elderly_user_id)
             
             if request.method == 'POST':
                 form = HealthRecordForm(request.POST, instance=health_record)
@@ -545,7 +546,7 @@ def specify_service_cost(request, request_id):
 def complete_session(request, request_id):
     if request.user.role == 'doctor':
         try:
-            service_request = ServiceRequest.objects.get(id=request_id, status='accepted')
+            service_request = ServiceRequest.objects.get(id=request_id, status='accepted', doctor=request.user.doctor)
             service_request.status = 'completed'
             service_request.save()
             return redirect('elderly:view_requests')
@@ -724,32 +725,7 @@ def doctor_dashboard(request):
             return redirect('elderly:profile')
         if not request.user.doctor.verified_status:
             return render(request, 'elderly/unverified_doctor.html')
-        
-        # Get the current accepted request
-        current_request = ServiceRequest.objects.filter(doctor=request.user.doctor, status='accepted').first()
-        
-        if current_request:
-            elderly_user = current_request.elderly_user
-            health_record, created = HealthRecord.objects.get_or_create(elderly_user=elderly_user)
-            if created:
-                health_record.save()
-            observations = Observation.objects.filter(request=current_request).order_by('-timestamp')
-            prescriptions = Prescription.objects.filter(request=current_request).order_by('-request__timestamp')
-            billing = Billing.objects.filter(request=current_request).order_by('-timestamp').first()
-            return render(request, 'elderly/doctor_dashboard.html', {
-                'current_request': current_request,
-                'health_record': health_record,
-                'elderly_user': elderly_user,
-                'observations': observations,
-                'prescriptions': prescriptions,
-                'billing': billing,
-            })
-        else:
-            # Fetch pending requests
-            pending_requests = ServiceRequest.objects.filter(status='pending')
-            return render(request, 'elderly/doctor_dashboard.html', {
-                'pending_requests': pending_requests,
-            })
+        return render(request, 'elderly/doctor_dashboard.html')
     return redirect('elderly:user_login')
 
 @login_required
@@ -790,3 +766,22 @@ def confirm_payment(request, bill_id):
         except Billing.DoesNotExist:
             pass
     return redirect('elderly:billing_section')
+
+@login_required
+def elderly_user_details(request, elderly_user_id):
+    if request.user.role == 'doctor':
+        try:
+            elderly_user = get_object_or_404(ElderlyUser, id=elderly_user_id)
+            service_request = ServiceRequest.objects.filter(
+                elderly_user=elderly_user,
+                status='accepted',
+                doctor=request.user.doctor
+            ).first()
+            if service_request:
+                return render(request, 'elderly/elderly_user_details.html', {
+                    'elderly_user': elderly_user,
+                    'request_id': service_request.id,
+                })
+        except ElderlyUser.DoesNotExist:
+            pass
+    return redirect('elderly:dashboard')

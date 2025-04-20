@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="{% static 'css/profile.css' %}">  <!-- Include profile.css -->
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">  <!-- Include dashboard.css -->
     <link rel="stylesheet" href="{% static 'css/health_records.css' %}">  <!-- Include health_records.css -->
-    <link rel="stylesheet" href="{% static 'css/doctor_dashboard.css' %}">  <!-- Include doctor_dashboard.css -->
+    {% block extra_css %}
+    {% endblock %}
 </head>
 <body>
     <header>

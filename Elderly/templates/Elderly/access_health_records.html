@@ -1,110 +1,138 @@
 {% extends 'elderly/base.html' %}
 {% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/doctor_dashboard_access_health_records.css' %}">
+{% endblock %}
 {% block content %}
-<h1>Health Records for {{ elderly_user.first_name }} {{ elderly_user.last_name }}</h1>
-<div class="health-record-section">
-    <h3>Medical History</h3>
-    <p>{{ health_record.medical_history }}</p>
-</div>
-<div class="health-record-section">
-    <h3>Current Medications</h3>
-    <p>{{ health_record.current_medications }}</p>
-</div>
-<div class="health-record-section">
-    <h3>Allergies</h3>
-    <p>{{ health_record.allergies }}</p>
-</div>
-<div class="health-record-section">
-    <h3>Health Metrics</h3>
-    <p><strong>Blood Pressure:</strong> {{ health_record.blood_pressure }}</p>
-    <p><strong>Heart Rate:</strong> {{ health_record.heart_rate }}</p>
-    <p><strong>Sugar Levels:</strong> {{ health_record.sugar_levels }}</p>
-    <p><strong>Last Updated:</strong> {{ health_record.last_updated }}</p>
-</div>
-<div class="observations-section">
-    <h2>Observations</h2>
-    {% if observations %}
-        <ul>
-            {% for observation in observations %}
-                <li>{{ observation.notes }} ({{ observation.timestamp }})</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No observations recorded.</p>
-    {% endif %}
-    <form method="post" action="{% url 'elderly:record_observations' request_id %}">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="notes">Record Observation:</label>
-            <textarea name="notes" id="notes" rows="4"></textarea>
-        </div>
-        <button type="submit">Save Observation</button>
-    </form>
-</div>
-<div class="prescriptions-section">
-    <h2>Prescriptions</h2>
-    {% if prescriptions %}
-        <ul>
-            {% for prescription in prescriptions %}
-                <li>
-                    <strong>Medication:</strong> {{ prescription.medication_name }}<br>
-                    <strong>Dosage:</strong> {{ prescription.dosage }}<br>
-                    <strong>Duration:</strong> {{ prescription.duration }}<br>
-                    <strong>Additional Notes:</strong> {{ prescription.additional_notes }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No prescriptions issued.</p>
-    {% endif %}
-    <form method="post" action="{% url 'elderly:issue_prescriptions' request_id %}">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="medication_name">Medication Name:</label>
-            <input type="text" name="medication_name" id="medication_name">
-        </div>
-        <div class="form-group">
-            <label for="dosage">Dosage:</label>
-            <input type="text" name="dosage" id="dosage">
-        </div>
-        <div class="form-group">
-            <label for="duration">Duration:</label>
-            <input type="text" name="duration" id="duration">
-        </div>
-        <div class="form-group">
-            <label for="additional_notes">Additional Notes:</label>
-            <textarea name="additional_notes" id="additional_notes" rows="4"></textarea>
-        </div>
-        <button type="submit">Issue Prescription</button>
-    </form>
-</div>
-<div class="billing-section">
-    <h2>Billing Information</h2>
-    {% if billing %}
-        <p><strong>Service Cost:</strong> ${{ billing.service_cost }}</p>
-        <p><strong>Payment Status:</strong> {{ billing.payment_status }}</p>
-        {% if billing.payment_status == 'pending' %}
-            <form method="post" action="{% url 'elderly:pay_now' bill_id=billing.id %}">
-                {% csrf_token %}
-                <button type="submit">Pay Now</button>
-            </form>
-        {% else %}
-            <p>Payment Status: Paid</p>
-            <form method="post" action="{% url 'elderly:complete_session' request_id %}">
-                {% csrf_token %}
-                <button type="submit">Complete Session</button>
-            </form>
-        {% endif %}
-    {% else %}
-        <p>No billing information specified.</p>
-        <form method="post" action="{% url 'elderly:specify_service_cost' request_id %}">
+<div class="access-health-records-container">
+    <h1>Health Records for {{ elderly_user.first_name }} {{ elderly_user.last_name }}</h1>
+    <div class="health-record-section">
+        <h2>Health Records</h2>
+        <form method="post">
             {% csrf_token %}
             <div class="form-group">
-                <label for="service_cost">Service Cost:</label>
-                <input type="number" step="0.01" name="service_cost" id="service_cost">
+                <label for="medical_history">Medical History</label>
+                <textarea name="medical_history" id="medical_history" rows="4">{{ health_record.medical_history }}</textarea>
             </div>
-            <button type="submit">Specify Service Cost</button>
+            <div class="form-group">
+                <label for="current_medications">Current Medications</label>
+                <textarea name="current_medications" id="current_medications" rows="4">{{ health_record.current_medications }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="allergies">Allergies</label>
+                <textarea name="allergies" id="allergies" rows="4">{{ health_record.allergies }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="blood_pressure">Blood Pressure</label>
+                <input type="text" id="blood_pressure" name="blood_pressure" value="{{ health_record.blood_pressure }}">
+            </div>
+            <div class="form-group">
+                <label for="heart_rate">Heart Rate</label>
+                <input type="number" id="heart_rate" name="heart_rate" value="{{ health_record.heart_rate }}">
+            </div>
+            <div class="form-group">
+                <label for="sugar_levels">Sugar Levels</label>
+                <input type="number" step="0.01" id="sugar_levels" name="sugar_levels" value="{{ health_record.sugar_levels }}">
+            </div>
+            <button type="submit" class="btn-submit">Save Health Records</button>
         </form>
-    {% endif %}
+    </div>
+
+    <div class="observations-section">
+        <h2>Observations</h2>
+        {% if observations %}
+            <ul>
+                {% for observation in observations %}
+                    <li>{{ observation.notes }} ({{ observation.timestamp }})</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No observations recorded.</p>
+        {% endif %}
+        <div class="form-group">
+            <form method="post" action="{% url 'elderly:record_observations' request_id %}">
+                {% csrf_token %}
+                <label for="notes">Record Observation</label>
+                <textarea name="notes" id="notes" rows="4"></textarea>
+                <button type="submit" class="btn-submit">Save Observation</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="prescriptions-section">
+        <h2>Prescriptions</h2>
+        {% if prescriptions %}
+            <ul>
+                {% for prescription in prescriptions %}
+                    <li>
+                        <strong>Medication:</strong> {{ prescription.medication_name }}<br>
+                        <strong>Dosage:</strong> {{ prescription.dosage }}<br>
+                        <strong>Duration:</strong> {{ prescription.duration }}<br>
+                        <strong>Additional Notes:</strong> {{ prescription.additional_notes }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No prescriptions issued.</p>
+        {% endif %}
+        <div class="form-group">
+            <form method="post" action="{% url 'elderly:issue_prescriptions' request_id %}">
+                {% csrf_token %}
+                <label for="medication_name">Medication Name</label>
+                <input type="text" name="medication_name" id="medication_name">
+                <label for="dosage">Dosage</label>
+                <input type="text" name="dosage" id="dosage">
+                <label for="duration">Duration</label>
+                <input type="text" name="duration" id="duration">
+                <label for="additional_notes">Additional Notes</label>
+                <textarea name="additional_notes" id="additional_notes" rows="4"></textarea>
+                <button type="submit" class="btn-submit">Issue Prescription</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="billing-section">
+        <h2>Billing Information</h2>
+        {% if billing %}
+            <p><strong>Service Cost:</strong> ${{ billing.service_cost }}</p>
+            <p><strong>Payment Status:</strong> {{ billing.payment_status }}</p>
+            {% if billing.payment_status == 'pending' %}
+                <div class="form-group">
+                    <form method="post" action="{% url 'elderly:specify_service_cost' request_id %}">
+                        {% csrf_token %}
+                        <label for="service_cost">Service Cost</label>
+                        <input type="number" step="0.01" name="service_cost" id="service_cost">
+                        <label for="paybill">Paybill</label>
+                        <input type="text" name="paybill" id="paybill" placeholder="Paybill Number">
+                        <label for="account_number">Account Number</label>
+                        <input type="text" name="account_number" id="account_number" placeholder="Account Number">
+                        <button type="submit" class="btn-submit">Specify Service Cost</button>
+                    </form>
+                </div>
+            {% else %}
+                <p>Payment Status: Paid</p>
+                <div class="form-group">
+                    <form method="post" action="{% url 'elderly:complete_session' request_id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-submit">Complete Session</button>
+                    </form>
+                </div>
+            {% endif %}
+        {% else %}
+            <p>No billing information specified.</p>
+            <div class="form-group">
+                <form method="post" action="{% url 'elderly:specify_service_cost' request_id %}">
+                    {% csrf_token %}
+                    <label for="service_cost">Service Cost</label>
+                    <input type="number" step="0.01" name="service_cost" id="service_cost">
+                    <label for="paybill">Paybill</label>
+                    <input type="text" name="paybill" id="paybill" placeholder="Paybill Number">
+                    <label for="account_number">Account Number</label>
+                    <input type="text" name="account_number" id="account_number" placeholder="Account Number">
+                    <button type="submit" class="btn-submit">Specify Service Cost</button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
